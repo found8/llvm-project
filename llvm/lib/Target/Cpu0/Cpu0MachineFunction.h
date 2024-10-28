@@ -34,6 +34,7 @@ public:
   : MF(MF),
     VarArgsFrameIndex(0),
     SRetReturnReg(0), CallsEhReturn(false), CallsEhDwarf(false),
+    GlobalBaseReg(0),
     EmitNOAT(false),
     MaxCallFrameSize(0)
     {}
@@ -42,6 +43,10 @@ public:
 
   unsigned getSRetReturnReg() const { return SRetReturnReg; }
   void setSRetReturnReg(unsigned Reg) { SRetReturnReg = Reg; }
+
+  bool globalBaseRegFixed() const;
+  bool globalBaseRegSet() const;
+  unsigned getGlobalBaseReg();
 
   int getVarArgsFrameIndex() const { return VarArgsFrameIndex; }
   void setVarArgsFrameIndex(int Index) { VarArgsFrameIndex = Index; }
@@ -96,6 +101,12 @@ private:
   /// Frame objects for spilling eh data registers.
   int EhDataRegFI[2];
 
+  /// GlobalBaseReg - keeps track of the virtual register initialized for
+  /// use as the global base register. This is used for PIC in some PIC
+  /// relocation models.
+  unsigned GlobalBaseReg;
+
+  int GPFI; // Index of the frame object for restoring $gp
   bool EmitNOAT;
   unsigned MaxCallFrameSize;
 };
