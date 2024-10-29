@@ -114,7 +114,7 @@ public:
   }
 
   bool hasChapter11_2() const {
-    return false;
+    return true;
   }
 
   bool hasChapter12_1() const {
