@@ -12,7 +12,10 @@
 
 #include "Cpu0Config.h"
 
+#if CH >= CH5_1
 #include "MCTargetDesc/Cpu0MCExpr.h"
+#endif
+#if CH >= CH3_2
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/CodeGen/MachineOperand.h"
 #include "llvm/Support/Compiler.h"
@@ -37,13 +40,20 @@ public:
   void Initialize(MCContext* C);
   void Lower(const MachineInstr *MI, MCInst &OutMI) const;
   MCOperand LowerOperand(const MachineOperand& MO, unsigned offset = 0) const;
+#if CH >= CH6_1 //1
   void LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts);
+#endif
+#if CH >= CH9_3
 #ifdef ENABLE_GPRESTORE
   void LowerCPRESTORE(int64_t Offset, SmallVector<MCInst, 4>& MCInsts);
 #endif
+#endif //#if CH >= CH9_3
+#if CH >= CH6_1 //2
 private:
   MCOperand LowerSymbolOperand(const MachineOperand &MO,
                                MachineOperandType MOTy, unsigned Offset) const;
+#endif
+#if CH >= CH8_2 //1
   MCOperand createSub(MachineBasicBlock *BB1, MachineBasicBlock *BB2,
                       Cpu0MCExpr::Cpu0ExprKind Kind) const;
   void lowerLongBranchLUi(const MachineInstr *MI, MCInst &OutMI) const;
@@ -51,8 +61,10 @@ private:
                             int Opcode,
                             Cpu0MCExpr::Cpu0ExprKind Kind) const;
   bool lowerLongBranch(const MachineInstr *MI, MCInst &OutMI) const;
+#endif
 };
 }
 
-#endif
+#endif // #if CH >= CH3_2
 
+#endif

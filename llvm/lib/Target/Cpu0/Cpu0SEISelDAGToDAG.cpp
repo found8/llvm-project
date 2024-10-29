@@ -12,10 +12,13 @@
 //===----------------------------------------------------------------------===//
 
 #include "Cpu0SEISelDAGToDAG.h"
+#if CH >= CH3_3
 
 #include "MCTargetDesc/Cpu0BaseInfo.h"
 #include "Cpu0.h"
+#if CH >= CH3_5
 #include "Cpu0AnalyzeImmediate.h"
+#endif
 #include "Cpu0MachineFunction.h"
 #include "Cpu0RegisterInfo.h"
 #include "llvm/CodeGen/MachineConstantPool.h"
@@ -42,6 +45,7 @@ bool Cpu0SEDAGToDAGISel::runOnMachineFunction(MachineFunction &MF) {
   return Cpu0DAGToDAGISel::runOnMachineFunction(MF);
 }
 
+#if CH >= CH4_1 //1
 /// Select multiply instructions.
 std::pair<SDNode *, SDNode *>
 Cpu0SEDAGToDAGISel::selectMULT(SDNode *N, unsigned Opc, const SDLoc &DL, EVT Ty,
@@ -62,10 +66,12 @@ Cpu0SEDAGToDAGISel::selectMULT(SDNode *N, unsigned Opc, const SDLoc &DL, EVT Ty,
 
   return std::make_pair(Lo, Hi);
 }
+#endif
 
 void Cpu0SEDAGToDAGISel::processFunctionAfterISel(MachineFunction &MF) {
 }
 
+#if CH >= CH7_1 //1
 void Cpu0SEDAGToDAGISel::selectAddESubE(unsigned MOp, SDValue InFlag,
                                            SDValue CmpLHS, const SDLoc &DL,
                                            SDNode *Node) const {
@@ -92,6 +98,7 @@ void Cpu0SEDAGToDAGISel::selectAddESubE(unsigned MOp, SDValue InFlag,
 
   CurDAG->SelectNodeTo(Node, MOp, VT, MVT::Glue, LHS, SDValue(AddCarry,0));
 }
+#endif
 
 //@selectNode
 bool Cpu0SEDAGToDAGISel::trySelect(SDNode *Node) {
@@ -113,6 +120,7 @@ bool Cpu0SEDAGToDAGISel::trySelect(SDNode *Node) {
   switch(Opcode) {
   default: break;
 
+#if CH >= CH7_1 //2
   case ISD::SUBE: {
     SDValue InFlag = Node->getOperand(2);
     selectAddESubE(Cpu0::SUBu, InFlag, InFlag.getOperand(0), DL, Node);
@@ -142,7 +150,9 @@ bool Cpu0SEDAGToDAGISel::trySelect(SDNode *Node) {
     CurDAG->RemoveDeadNode(Node);
     return true;
   }
+#endif
 
+#if CH >= CH4_1 //2
   case ISD::MULHS:
   case ISD::MULHU: {
     MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
@@ -160,6 +170,7 @@ bool Cpu0SEDAGToDAGISel::trySelect(SDNode *Node) {
 
     return true;
   }
+#endif
 
   }
 
@@ -171,3 +182,4 @@ FunctionPass *llvm::createCpu0SEISelDag(Cpu0TargetMachine &TM,
   return new Cpu0SEDAGToDAGISel(TM, OptLevel);
 }
 
+#endif // #if CH >= CH3_3

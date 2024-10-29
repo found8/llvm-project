@@ -11,6 +11,7 @@
 #define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0FIXUPKINDS_H
 
 #include "Cpu0Config.h"
+#if CH >= CH5_1
 
 #include "llvm/MC/MCFixup.h"
 
@@ -41,6 +42,7 @@ namespace Cpu0 {
     // Symbol fixup resulting in - R_CPU0_GOT16.
     fixup_Cpu0_GOT,
 
+#if CH >= CH8_1
     // PC relative branch fixup resulting in - R_CPU0_PC16.
     // cpu0 PC16, e.g. beq
     fixup_Cpu0_PC16,
@@ -48,10 +50,14 @@ namespace Cpu0 {
     // PC relative branch fixup resulting in - R_CPU0_PC24.
     // cpu0 PC24, e.g. jeq, jmp
     fixup_Cpu0_PC24,
+#endif
 
+#if CH >= CH9_1
     // resulting in - R_CPU0_CALL16.
     fixup_Cpu0_CALL16,
+#endif
 
+#if CH >= CH12_1
     // resulting in - R_CPU0_TLS_GD.
     fixup_Cpu0_TLSGD,
 
@@ -72,6 +78,7 @@ namespace Cpu0 {
 
     // resulting in - R_CPU0_TLS_DTP_LO16.
     fixup_Cpu0_DTP_LO,
+#endif
 
     // resulting in - R_CPU0_GOT_HI16
     fixup_Cpu0_GOT_HI16,
@@ -87,5 +94,6 @@ namespace Cpu0 {
 } // namespace Cpu0
 } // namespace llvm
 
-#endif // LLVM_CPU0_CPU0FIXUPKINDS_H
+#endif // #if CH >= CH5_1
 
+#endif // LLVM_CPU0_CPU0FIXUPKINDS_H

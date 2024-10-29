@@ -11,6 +11,7 @@
 #define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCEXPR_H
 
 #include "Cpu0Config.h"
+#if CH >= CH5_1
 
 #include "llvm/MC/MCAsmLayout.h"
 #include "llvm/MC/MCExpr.h"
@@ -85,5 +86,6 @@ public:
 };
 } // end namespace llvm
 
-#endif
+#endif // #if CH >= CH5_1
 
+#endif

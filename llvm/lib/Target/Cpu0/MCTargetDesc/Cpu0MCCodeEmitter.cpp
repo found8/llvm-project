@@ -13,6 +13,7 @@
 //
 
 #include "Cpu0MCCodeEmitter.h"
+#if CH >= CH5_1
 
 #include "MCTargetDesc/Cpu0BaseInfo.h"
 #include "MCTargetDesc/Cpu0FixupKinds.h"
@@ -98,6 +99,7 @@ unsigned Cpu0MCCodeEmitter::
 getBranch16TargetOpValue(const MCInst &MI, unsigned OpNo,
                          SmallVectorImpl<MCFixup> &Fixups,
                          const MCSubtargetInfo &STI) const {
+#if CH >= CH8_1 //1
   const MCOperand &MO = MI.getOperand(OpNo);
 
   // If the destination is an immediate, we have nothing to do.
@@ -107,6 +109,7 @@ getBranch16TargetOpValue(const MCInst &MI, unsigned OpNo,
   const MCExpr *Expr = MO.getExpr();
   Fixups.push_back(MCFixup::create(0, Expr,
                                    MCFixupKind(Cpu0::fixup_Cpu0_PC16)));
+#endif
   return 0;
 }
 
@@ -117,6 +120,7 @@ unsigned Cpu0MCCodeEmitter::
 getBranch24TargetOpValue(const MCInst &MI, unsigned OpNo,
                        SmallVectorImpl<MCFixup> &Fixups,
                        const MCSubtargetInfo &STI) const {
+#if CH >= CH8_1 //2
   const MCOperand &MO = MI.getOperand(OpNo);
 
   // If the destination is an immediate, we have nothing to do.
@@ -126,6 +130,7 @@ getBranch24TargetOpValue(const MCInst &MI, unsigned OpNo,
   const MCExpr *Expr = MO.getExpr();
   Fixups.push_back(MCFixup::create(0, Expr,
                                    MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
+#endif
   return 0;
 }
 
@@ -138,6 +143,7 @@ unsigned Cpu0MCCodeEmitter::
 getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
                      SmallVectorImpl<MCFixup> &Fixups,
                      const MCSubtargetInfo &STI) const {
+#if CH >= CH8_1 //3
   unsigned Opcode = MI.getOpcode();
   const MCOperand &MO = MI.getOperand(OpNo);
   // If the destination is an immediate, we have nothing to do.
@@ -145,11 +151,18 @@ getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
   assert(MO.isExpr() && "getJumpTargetOpValue expects only expressions");
 
   const MCExpr *Expr = MO.getExpr();
+#if CH >= CH9_1 //1
   if (Opcode == Cpu0::JSUB || Opcode == Cpu0::JMP || Opcode == Cpu0::BAL)
+#elif CH >= CH8_2 //1
+  if (Opcode == Cpu0::JMP || Opcode == Cpu0::BAL)
+#else
+  if (Opcode == Cpu0::JMP)
+#endif //#if CH >= CH9_1 //1
     Fixups.push_back(MCFixup::create(0, Expr,
                                      MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
   else
     llvm_unreachable("unexpect opcode in getJumpAbsoluteTargetOpValue()");
+#endif
   return 0;
 }
 //@CH8_1 }
@@ -176,15 +189,18 @@ getExprOpValue(const MCExpr *Expr,SmallVectorImpl<MCFixup> &Fixups,
     Cpu0::Fixups FixupKind = Cpu0::Fixups(0);
     switch (Cpu0Expr->getKind()) {
     default: llvm_unreachable("Unsupported fixup kind for target expression!");
+#if CH >= CH6_1
   //@switch {
 //    switch(cast<MCSymbolRefExpr>(Expr)->getKind()) {
   //@switch }
     case Cpu0MCExpr::CEK_GPREL:
       FixupKind = Cpu0::fixup_Cpu0_GPREL16;
       break;
+#if CH >= CH9_1 //2
     case Cpu0MCExpr::CEK_GOT_CALL:
       FixupKind = Cpu0::fixup_Cpu0_CALL16;
       break;
+#endif
     case Cpu0MCExpr::CEK_GOT:
       FixupKind = Cpu0::fixup_Cpu0_GOT;
       break;
@@ -194,6 +210,7 @@ getExprOpValue(const MCExpr *Expr,SmallVectorImpl<MCFixup> &Fixups,
     case Cpu0MCExpr::CEK_ABS_LO:
       FixupKind = Cpu0::fixup_Cpu0_LO16;
       break;
+#if CH >= CH12_1
     case Cpu0MCExpr::CEK_TLSGD:
       FixupKind = Cpu0::fixup_Cpu0_TLSGD;
       break;
@@ -215,16 +232,19 @@ getExprOpValue(const MCExpr *Expr,SmallVectorImpl<MCFixup> &Fixups,
     case Cpu0MCExpr::CEK_TP_LO:
       FixupKind = Cpu0::fixup_Cpu0_TP_LO;
       break;
+#endif
     case Cpu0MCExpr::CEK_GOT_HI16:
       FixupKind = Cpu0::fixup_Cpu0_GOT_HI16;
       break;
     case Cpu0MCExpr::CEK_GOT_LO16:
       FixupKind = Cpu0::fixup_Cpu0_GOT_LO16;
       break;
+#endif // #if CH >= CH6_1
     } // switch
     Fixups.push_back(MCFixup::create(0, Expr, MCFixupKind(FixupKind)));
     return 0;
   }
+
 
   // All of the information is in the fixup.
   return 0;
@@ -267,3 +287,4 @@ Cpu0MCCodeEmitter::getMemEncoding(const MCInst &MI, unsigned OpNo,
 
 #include "Cpu0GenMCCodeEmitter.inc"
 
+#endif // #if CH >= CH5_1

@@ -16,6 +16,7 @@
 #define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0ASMBACKEND_H
 
 #include "Cpu0Config.h"
+#if CH >= CH5_1
 
 #include "MCTargetDesc/Cpu0FixupKinds.h"
 #include "llvm/ADT/Triple.h"
@@ -79,5 +80,6 @@ public:
 
 } // namespace
 
-#endif
+#endif // #if CH >= CH5_1
 
+#endif

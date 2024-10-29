@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 #include "Cpu0MachineFunction.h"
 #include "Cpu0SEISelLowering.h"
+#if CH >= CH3_1
 
 #include "Cpu0RegisterInfo.h"
 #include "Cpu0TargetMachine.h"
@@ -39,7 +40,9 @@ Cpu0SETargetLowering::Cpu0SETargetLowering(const Cpu0TargetMachine &TM,
   // Set up the register classes
   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
 
+#if CH >= CH12_1 //1
   setOperationAction(ISD::ATOMIC_FENCE,       MVT::Other, Custom);
+#endif
 
 // must, computeRegisterProperties - Once all of the register classes are
 //  added, this allows us to compute derived properties we expose.
@@ -58,6 +61,7 @@ llvm::createCpu0SETargetLowering(const Cpu0TargetMachine &TM,
   return new Cpu0SETargetLowering(TM, STI);
 }
 
+#if CH >= CH9_1
 bool Cpu0SETargetLowering::
 isEligibleForTailCallOptimization(const Cpu0CC &Cpu0CCInfo,
                                   unsigned NextStackOffset,
@@ -73,4 +77,6 @@ isEligibleForTailCallOptimization(const Cpu0CC &Cpu0CCInfo,
   // caller's.
   return NextStackOffset <= FI.getIncomingArgSize();
 }
+#endif
 
+#endif // #if CH >= CH3_1

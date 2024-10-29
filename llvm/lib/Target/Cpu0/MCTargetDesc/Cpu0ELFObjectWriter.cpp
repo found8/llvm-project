@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "Cpu0Config.h"
+#if CH >= CH5_1
 
 #include "MCTargetDesc/Cpu0BaseInfo.h"
 #include "MCTargetDesc/Cpu0FixupKinds.h"
@@ -56,18 +57,22 @@ unsigned Cpu0ELFObjectWriter::getRelocType(MCContext &Ctx,
   case FK_Data_4:
     Type = ELF::R_CPU0_32;
     break;
+#if CH >= CH8_1 //1
   case FK_GPRel_4:
     Type = ELF::R_CPU0_GPREL32;
     break;
+#endif
   case Cpu0::fixup_Cpu0_32:
     Type = ELF::R_CPU0_32;
     break;
   case Cpu0::fixup_Cpu0_GPREL16:
     Type = ELF::R_CPU0_GPREL16;
     break;
+#if CH >= CH9_1
   case Cpu0::fixup_Cpu0_CALL16:
     Type = ELF::R_CPU0_CALL16;
     break;
+#endif
   case Cpu0::fixup_Cpu0_GOT:
     Type = ELF::R_CPU0_GOT16;
     break;
@@ -77,18 +82,23 @@ unsigned Cpu0ELFObjectWriter::getRelocType(MCContext &Ctx,
   case Cpu0::fixup_Cpu0_LO16:
     Type = ELF::R_CPU0_LO16;
     break;
+#if CH >= CH12_1
   case Cpu0::fixup_Cpu0_TLSGD:
     Type = ELF::R_CPU0_TLS_GD;
     break;
   case Cpu0::fixup_Cpu0_GOTTPREL:
     Type = ELF::R_CPU0_TLS_GOTTPREL;
     break;
+#endif
+#if CH >= CH8_1 //2
   case Cpu0::fixup_Cpu0_PC16:
     Type = ELF::R_CPU0_PC16;
     break;
   case Cpu0::fixup_Cpu0_PC24:
     Type = ELF::R_CPU0_PC24;
     break;
+#endif
+#if CH >= CH12_1
   case Cpu0::fixup_Cpu0_TP_HI:
     Type = ELF::R_CPU0_TLS_TP_HI16;
     break;
@@ -104,6 +114,7 @@ unsigned Cpu0ELFObjectWriter::getRelocType(MCContext &Ctx,
   case Cpu0::fixup_Cpu0_DTP_LO:
     Type = ELF::R_CPU0_TLS_DTP_LO16;
     break;
+#endif
   case Cpu0::fixup_Cpu0_GOT_HI16:
     Type = ELF::R_CPU0_GOT_HI16;
     break;
@@ -157,3 +168,4 @@ llvm::createCpu0ELFObjectWriter(const Triple &TT) {
                                                IsN64);
 }
 
+#endif // #if CH >= CH5_1

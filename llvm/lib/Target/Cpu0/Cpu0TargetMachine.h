@@ -15,6 +15,7 @@
 #define LLVM_LIB_TARGET_CPU0_CPU0TARGETMACHINE_H
 
 #include "Cpu0Config.h"
+#if CH >= CH3_1
 
 #include "MCTargetDesc/Cpu0ABIInfo.h"
 #include "Cpu0Subtarget.h"
@@ -82,5 +83,6 @@ public:
 };
 } // End llvm namespace
 
-#endif
+#endif // #if CH >= CH3_1
 
+#endif

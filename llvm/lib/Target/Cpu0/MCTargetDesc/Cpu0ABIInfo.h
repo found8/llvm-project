@@ -11,6 +11,7 @@
 #define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0ABIINFO_H
 
 #include "Cpu0Config.h"
+#if CH >= CH3_1
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/Triple.h"
@@ -69,5 +70,5 @@ public:
 };
 }
 
+#endif // CH >= CH3_1
 #endif
-

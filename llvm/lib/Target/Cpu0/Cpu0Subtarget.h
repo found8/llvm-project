@@ -15,6 +15,7 @@
 #define LLVM_LIB_TARGET_CPU0_CPU0SUBTARGET_H
 
 #include "Cpu0Config.h"
+#if CH >= CH3_1
 
 #include "Cpu0FrameLowering.h"
 #include "Cpu0ISelLowering.h"
@@ -28,8 +29,10 @@
 #define GET_SUBTARGETINFO_HEADER
 #include "Cpu0GenSubtargetInfo.inc"
 
+#if CH >= CH6_1 //1
 extern bool Cpu0ReserveGP;
 extern bool Cpu0NoCpload;
+#endif
 
 //@1
 namespace llvm {
@@ -46,79 +49,155 @@ public:
   bool HasChapterAll;
 
   bool hasChapter3_1() const {
+#if CH >= CH3_1
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter3_2() const {
+#if CH >= CH3_2
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter3_3() const {
+#if CH >= CH3_3
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter3_4() const {
+#if CH >= CH3_4
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter3_5() const {
+#if CH >= CH3_5
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter4_1() const {
+#if CH >= CH4_1
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter4_2() const {
+#if CH >= CH4_2
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter5_1() const {
+#if CH >= CH5_1
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter6_1() const {
+#if CH >= CH6_1
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter7_1() const {
+#if CH >= CH7_1
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter8_1() const {
+#if CH >= CH8_1
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter8_2() const {
+#if CH >= CH8_2
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter9_1() const {
+#if CH >= CH9_1
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter9_2() const {
+#if CH >= CH9_2
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter9_3() const {
+#if CH >= CH9_3
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter10_1() const {
+#if CH >= CH10_1
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter11_1() const {
+#if CH >= CH11_1
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter11_2() const {
+#if CH >= CH11_2
     return true;
+#else
+    return false;
+#endif
   }
 
   bool hasChapter12_1() const {
+#if CH >= CH12_1
     return true;
+#else
+    return false;
+#endif
   }
 
 protected:
@@ -143,8 +222,10 @@ protected:
 
   InstrItineraryData InstrItins;
 
+#if CH >= CH6_1 //RM
   // UseSmallSection - Small section is used.
   bool UseSmallSection;
+#endif //TM
 
   const Cpu0TargetMachine &TM;
 
@@ -182,7 +263,9 @@ public:
   bool hasCmp()   const { return HasCmp; }
   bool hasSlt()   const { return HasSlt; }
 
+#if CH >= CH6_1 //hasSlt
   bool useSmallSection() const { return UseSmallSection; }
+#endif //abiUsesSoftFloat
 
   bool abiUsesSoftFloat() const;
 
@@ -214,5 +297,6 @@ public:
 };
 } // End llvm namespace
 
-#endif // #if CH >= CH3_1
 
+#endif
+#endif // #if CH >= CH3_1

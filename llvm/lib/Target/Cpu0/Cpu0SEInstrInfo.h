@@ -15,6 +15,7 @@
 #define LLVM_LIB_TARGET_CPU0_CPU0SEINSTRINFO_H
 
 #include "Cpu0Config.h"
+#if CH >= CH3_1
 
 #include "Cpu0InstrInfo.h"
 #include "Cpu0SERegisterInfo.h"
@@ -30,10 +31,13 @@ public:
 
   const Cpu0RegisterInfo &getRegisterInfo() const override;
 
+#if CH >= CH4_1
   void copyPhysReg(MachineBasicBlock &MBB, MachineBasicBlock::iterator MI,
                    const DebugLoc &DL, MCRegister DestReg, MCRegister SrcReg,
                    bool KillSrc) const override;
+#endif
 
+#if CH >= CH3_5 //1
   void storeRegToStack(MachineBasicBlock &MBB,
                        MachineBasicBlock::iterator MI,
                        Register SrcReg, bool isKill, int FrameIndex,
@@ -47,10 +51,14 @@ public:
                         const TargetRegisterClass *RC,
                         const TargetRegisterInfo *TRI,
                         int64_t Offset) const override;
+#endif //#if CH >= CH3_5 //1
 
+#if CH >= CH3_4 //1
 //@expandPostRAPseudo
   bool expandPostRAPseudo(MachineInstr &MI) const override;
+#endif //#if CH >= CH3_4 //1
 
+#if CH >= CH3_5 //2
   /// Adjust SP by Amount bytes.
   void adjustStackPtr(unsigned SP, int64_t Amount, MachineBasicBlock &MBB,
                       MachineBasicBlock::iterator I) const override;
@@ -61,16 +69,24 @@ public:
   unsigned loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
                          MachineBasicBlock::iterator II, const DebugLoc &DL,
                          unsigned *NewImm) const;
+#endif //#if CH >= CH3_5 //2
+#if CH >= CH3_4 //2
 private:
   void expandRetLR(MachineBasicBlock &MBB, MachineBasicBlock::iterator I) const;
+#endif //#if CH >= CH3_4 //2
 
+#if CH >= CH8_2 //1
   unsigned getOppositeBranchOpc(unsigned Opc) const override;
+#endif
 
+#if CH >= CH9_3
   void expandEhReturn(MachineBasicBlock &MBB,
                       MachineBasicBlock::iterator I) const;
+#endif
 };
 
 }
 
-#endif
+#endif // #if CH >= CH3_1
 
+#endif

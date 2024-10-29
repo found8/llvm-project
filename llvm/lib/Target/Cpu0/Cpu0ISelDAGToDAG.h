@@ -15,6 +15,7 @@
 #define LLVM_LIB_TARGET_CPU0_CPU0ISELDAGTODAG_H
 
 #include "Cpu0Config.h"
+#if CH >= CH3_3
 
 #include "Cpu0.h"
 #include "Cpu0Subtarget.h"
@@ -46,7 +47,9 @@ public:
   bool runOnMachineFunction(MachineFunction &MF) override;
 
 protected:
+#if CH >= CH6_1 //1
   SDNode *getGlobalBaseReg();
+#endif
 
   /// Keep a pointer to the Cpu0Subtarget around so that we can make the right
   /// decision when generating code for different targets.
@@ -76,12 +79,15 @@ private:
 
   virtual void processFunctionAfterISel(MachineFunction &MF) = 0;
 
+#if CH >= CH11_2
   bool SelectInlineAsmMemoryOperand(const SDValue &Op,
                                     unsigned ConstraintID,
                                     std::vector<SDValue> &OutOps) override;
+#endif
 };
 
 }
 
-#endif
+#endif // #if CH >= CH3_3
 
+#endif

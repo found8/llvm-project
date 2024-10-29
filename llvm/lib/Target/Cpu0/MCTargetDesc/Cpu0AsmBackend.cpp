@@ -14,6 +14,7 @@
 
 #include "MCTargetDesc/Cpu0FixupKinds.h"
 #include "MCTargetDesc/Cpu0AsmBackend.h"
+#if CH >= CH5_1
 
 #include "MCTargetDesc/Cpu0MCTargetDesc.h"
 #include "llvm/MC/MCAsmBackend.h"
@@ -48,10 +49,15 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
     return 0;
   case FK_GPRel_4:
   case FK_Data_4:
+#if CH >= CH9_1
   case Cpu0::fixup_Cpu0_CALL16:
+#endif
   case Cpu0::fixup_Cpu0_LO16:
+#if CH >= CH6_1
   case Cpu0::fixup_Cpu0_GOT_LO16:
+#endif
     break;
+#if CH >= CH8_1 //1
   case Cpu0::fixup_Cpu0_PC16:
   case Cpu0::fixup_Cpu0_PC24:
     // So far we are only using this type for branches and jump.
@@ -59,9 +65,12 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
     // so the displacement will be one instruction size less.
     Value -= 4;
     break;
+#endif
   case Cpu0::fixup_Cpu0_HI16:
   case Cpu0::fixup_Cpu0_GOT:
+#if CH >= CH6_1
   case Cpu0::fixup_Cpu0_GOT_HI16:
+#endif
     // Get the higher 16-bits. Also add 1 if bit 15 is 1.
     Value = (Value >> 16) & 0xffff;
     break;
@@ -143,9 +152,14 @@ getFixupKindInfo(MCFixupKind Kind) const {
     { "fixup_Cpu0_LO16",           0,     16,   0 },
     { "fixup_Cpu0_GPREL16",        0,     16,   0 },
     { "fixup_Cpu0_GOT",            0,     16,   0 },
+#if CH >= CH8_1 //2
     { "fixup_Cpu0_PC16",           0,     16,  MCFixupKindInfo::FKF_IsPCRel },
     { "fixup_Cpu0_PC24",           0,     24,  JSUBReloRec },
+#endif
+#if CH >= CH9_1
     { "fixup_Cpu0_CALL16",         0,     16,   0 },
+#endif
+#if CH >= CH12_1
     { "fixup_Cpu0_TLSGD",          0,     16,   0 },
     { "fixup_Cpu0_GOTTP",          0,     16,   0 },
     { "fixup_Cpu0_TP_HI",          0,     16,   0 },
@@ -153,6 +167,7 @@ getFixupKindInfo(MCFixupKind Kind) const {
     { "fixup_Cpu0_TLSLDM",         0,     16,   0 },
     { "fixup_Cpu0_DTP_HI",         0,     16,   0 },
     { "fixup_Cpu0_DTP_LO",         0,     16,   0 },
+#endif
     { "fixup_Cpu0_GOT_HI16",       0,     16,   0 },
     { "fixup_Cpu0_GOT_LO16",       0,     16,   0 }
   };
@@ -183,3 +198,4 @@ MCAsmBackend *llvm::createCpu0AsmBackend(const Target &T,
   return new Cpu0AsmBackend(T, STI.getTargetTriple());
 }
 
+#endif // #if CH >= CH5_1

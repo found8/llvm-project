@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "Cpu0SERegisterInfo.h"
+#if CH >= CH3_1
 
 using namespace llvm;
 
@@ -26,3 +27,4 @@ Cpu0SERegisterInfo::intRegClass(unsigned Size) const {
   return &Cpu0::CPURegsRegClass;
 }
 
+#endif

@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "Cpu0.h"
+#if CH >= CH9_3
 #ifdef ENABLE_GPRESTORE
 
 #include "Cpu0TargetMachine.h"
@@ -102,3 +103,4 @@ FunctionPass *llvm::createCpu0EmitGPRestorePass(Cpu0TargetMachine &tm) {
 
 #endif
 
+#endif

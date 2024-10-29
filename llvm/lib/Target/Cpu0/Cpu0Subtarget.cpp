@@ -13,6 +13,7 @@
 
 #include "Cpu0Subtarget.h"
 
+#if CH >= CH3_1
 #include "Cpu0MachineFunction.h"
 #include "Cpu0.h"
 #include "Cpu0RegisterInfo.h"
@@ -32,11 +33,14 @@ using namespace llvm;
 #define GET_SUBTARGETINFO_CTOR
 #include "Cpu0GenSubtargetInfo.inc"
 
+#if CH >= CH4_1 //1
 static cl::opt<bool> EnableOverflowOpt
                 ("cpu0-enable-overflow", cl::Hidden, cl::init(false),
                  cl::desc("Use trigger overflow instructions add and sub \
                  instead of non-overflow instructions addu and subu"));
+#endif
 
+#if CH >= CH6_1 //1
 static cl::opt<bool> UseSmallSectionOpt
                 ("cpu0-use-small-section", cl::Hidden, cl::init(false),
                  cl::desc("Use small section. Only work when -relocation-model="
@@ -52,6 +56,7 @@ static cl::opt<bool> NoCploadOpt
 
 bool Cpu0ReserveGP;
 bool Cpu0NoCpload;
+#endif
 
 extern bool FixGlobalBaseReg;
 
@@ -70,7 +75,10 @@ Cpu0Subtarget::Cpu0Subtarget(const Triple &TT, StringRef CPU,
       FrameLowering(Cpu0FrameLowering::create(*this)),
       TLInfo(Cpu0TargetLowering::create(TM, *this)) {
 
+#if CH >= CH4_1 //2
   EnableOverflow = EnableOverflowOpt;
+#endif
+#if CH >= CH6_1 //2
   // Set UseSmallSection.
   UseSmallSection = UseSmallSectionOpt;
   Cpu0ReserveGP = ReserveGPOpt;
@@ -81,6 +89,7 @@ Cpu0Subtarget::Cpu0Subtarget(const Triple &TT, StringRef CPU,
   else
 #endif
     FixGlobalBaseReg = true;
+#endif //#if CH >= CH6_1
 }
 
 bool Cpu0Subtarget::isPositionIndependent() const {
@@ -140,3 +149,4 @@ bool Cpu0Subtarget::abiUsesSoftFloat() const {
 
 const Cpu0ABIInfo &Cpu0Subtarget::getABI() const { return TM.getABI(); }
 
+#endif // #if CH >= CH3_1

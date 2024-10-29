@@ -11,6 +11,7 @@
 #define LLVM_LIB_TARGET_CPU0_CPU0TARGETSTREAMER_H
 
 #include "Cpu0Config.h"
+#if CH >= CH5_1
 
 #include "llvm/MC/MCELFStreamer.h"
 #include "llvm/MC/MCRegisterInfo.h"
@@ -33,5 +34,5 @@ public:
 
 }
 
+#endif // #if CH >= CH5_1
 #endif
-

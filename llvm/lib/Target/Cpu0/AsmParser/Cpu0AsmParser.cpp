@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "Cpu0.h"
+#if CH >= CH11_1
 
 #include "MCTargetDesc/Cpu0MCExpr.h"
 #include "MCTargetDesc/Cpu0MCTargetDesc.h"
@@ -60,6 +61,7 @@ namespace {
 class Cpu0AsmParser : public MCTargetAsmParser {
   MCAsmParser &Parser;
   Cpu0AssemblerOptions Options;
+
 
 #define GET_ASSEMBLER_HEADER
 #include "Cpu0GenAsmMatcher.inc"
@@ -1014,3 +1016,6 @@ extern "C" void LLVMInitializeCpu0AsmParser() {
 #define GET_MATCHER_IMPLEMENTATION
 #include "Cpu0GenAsmMatcher.inc"
 
+#else // #if CH >= CH11_1
+extern "C" void LLVMInitializeCpu0AsmParser() {}
+#endif

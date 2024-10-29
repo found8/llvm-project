@@ -11,6 +11,7 @@
 //  Declarations that describe the CPU0 register file
 //===----------------------------------------------------------------------===//
 
+
 // We have banks of 16 registers each.
 class Cpu0Reg<bits<16> Enc, string n> : Register<n> {
   // For tablegen(... -gen-emitter)  in CMakeLists.txt
@@ -51,9 +52,11 @@ let Namespace = "Cpu0" in {
 //  def MAR  : Register< 16, "mar">,  DwarfRegNum<[16]>;
 //  def MDR  : Register< 17, "mdr">,  DwarfRegNum<[17]>;
 
+//#if CH >= CH4_1 1
   // Hi/Lo registers number and name
   def HI   : Cpu0Reg<0, "ac0">, DwarfRegNum<[18]>;
   def LO   : Cpu0Reg<0, "ac0">, DwarfRegNum<[19]>;
+//#endif
   def PC   : Cpu0C0Reg<0, "pc">,  DwarfRegNum<[20]>;
   def EPC  : Cpu0C0Reg<1, "epc">, DwarfRegNum<[21]>;
 }
@@ -75,12 +78,13 @@ def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
   GP, FP,
   SP, LR, SW)>;
 
+//#if CH >= CH4_1 2
 // Hi/Lo Registers class
 def HILO   : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
+//#endif
 
 //@Status Registers class
 def SR     : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
 
 //@Co-processor 0 Registers class
 def C0Regs : RegisterClass<"Cpu0", [i32], 32, (add PC, EPC)>;
-

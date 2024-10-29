@@ -13,6 +13,7 @@
 
 #include "Cpu0ISelDAGToDAG.h"
 #include "Cpu0.h"
+#if CH >= CH3_3
 
 #include "Cpu0MachineFunction.h"
 #include "Cpu0RegisterInfo.h"
@@ -53,6 +54,7 @@ bool Cpu0DAGToDAGISel::runOnMachineFunction(MachineFunction &MF) {
   return Ret;
 }
 
+#if CH >= CH6_1 //1
 /// getGlobalBaseReg - Output the instructions required to put the
 /// GOT address into a register.
 SDNode *Cpu0DAGToDAGISel::getGlobalBaseReg() {
@@ -61,6 +63,7 @@ SDNode *Cpu0DAGToDAGISel::getGlobalBaseReg() {
                                                 CurDAG->getDataLayout()))
       .getNode();
 }
+#endif
 
 //@SelectAddr {
 /// ComplexPattern used on Cpu0InstrInfo
@@ -92,6 +95,7 @@ SelectAddr(SDNode *Parent, SDValue Addr, SDValue &Base, SDValue &Offset) {
     return true;
   }
 
+#if CH >= CH6_1 //2
   // on PIC code Load GA
   if (Addr.getOpcode() == Cpu0ISD::Wrapper) {
     Base   = Addr.getOperand(0);
@@ -105,7 +109,9 @@ SelectAddr(SDNode *Parent, SDValue Addr, SDValue &Base, SDValue &Offset) {
         Addr.getOpcode() == ISD::TargetGlobalAddress))
       return false;
   }
+#endif
 
+#if CH >= CH7_1 //1
   // Addresses of the form FI+const or FI|const
   if (CurDAG->isBaseWithConstantOffset(Addr)) {
     ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Addr.getOperand(1));
@@ -122,6 +128,7 @@ SelectAddr(SDNode *Parent, SDValue Addr, SDValue &Base, SDValue &Offset) {
       return true;
     }
   }
+#endif
 
   Base   = Addr;
   Offset = CurDAG->getTargetConstant(0, DL, ValTy);
@@ -149,16 +156,19 @@ void Cpu0DAGToDAGISel::Select(SDNode *Node) {
   switch(Opcode) {
   default: break;
 
+#if CH >= CH6_1 //3
   // Get target GOT address.
   case ISD::GLOBAL_OFFSET_TABLE:
     ReplaceNode(Node, getGlobalBaseReg());
     return;
+#endif
   }
 
   // Select the default instruction
   SelectCode(Node);
 }
 
+#if CH >= CH11_2
 // inlineasm begin
 bool Cpu0DAGToDAGISel::
 SelectInlineAsmMemoryOperand(const SDValue &Op, unsigned ConstraintID,
@@ -174,4 +184,6 @@ SelectInlineAsmMemoryOperand(const SDValue &Op, unsigned ConstraintID,
   return true;
 }
 // inlineasm end
+#endif
 
+#endif // #if CH >= CH3_3

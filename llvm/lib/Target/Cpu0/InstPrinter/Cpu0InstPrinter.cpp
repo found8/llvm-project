@@ -13,7 +13,10 @@
 
 #include "Cpu0InstPrinter.h"
 
+#if CH >= CH5_1 //1
 #include "MCTargetDesc/Cpu0MCExpr.h"
+#endif
+#if CH >= CH3_2
 #include "Cpu0InstrInfo.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/MC/MCExpr.h"
@@ -99,3 +102,4 @@ printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &O) {
 }
 //#endif
 
+#endif // #if CH >= CH3_2

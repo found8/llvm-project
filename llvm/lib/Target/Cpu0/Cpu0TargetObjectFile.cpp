@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "Cpu0TargetObjectFile.h"
+#if CH >= CH3_1
 
 #include "Cpu0Subtarget.h"
 #include "Cpu0TargetMachine.h"
@@ -38,6 +39,7 @@ void Cpu0TargetObjectFile::Initialize(MCContext &Ctx, const TargetMachine &TM){
   this->TM = &static_cast<const Cpu0TargetMachine &>(TM);
 }
 
+#if CH >= CH6_1
 // A address must be loaded from a small section if its size is less than the
 // small section size threshold. Data in this section must be addressed using
 // gp_rel operator.
@@ -89,6 +91,7 @@ IsGlobalInSmallSectionImpl(const GlobalObject *GV,
       GV->getParent()->getDataLayout().getTypeAllocSize(Ty));
 }
 
+
 MCSection *
 Cpu0TargetObjectFile::SelectSectionForGlobal(
     const GlobalObject *GO, SectionKind Kind, const TargetMachine &TM) const {
@@ -107,3 +110,6 @@ Cpu0TargetObjectFile::SelectSectionForGlobal(
   return TargetLoweringObjectFileELF::SelectSectionForGlobal(GO, Kind, TM);
 }
 
+#endif // #if CH >= CH6_1
+
+#endif // #if CH >= CH3_1

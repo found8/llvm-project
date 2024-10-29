@@ -7,11 +7,13 @@
 //
 //===----------------------------------------------------------------------===//
 
+//#if CH >= CH3_1 1
 // Without this will have error: 'cpu032I' is not a recognized processor for
 //  this target (ignoring processor)
 //===----------------------------------------------------------------------===//
 // Cpu0 Subtarget features                                                    //
 //===----------------------------------------------------------------------===//
+
 
 def FeatureChapter3_1  : SubtargetFeature<"ch3_1", "HasChapterDummy", "true",
                                 "Enable Chapter instructions.">;
@@ -65,6 +67,7 @@ def FeatureChapterAll  : SubtargetFeature<"chall", "HasChapterDummy", "true",
                                  FeatureChapter11_1, FeatureChapter11_2,
                                  FeatureChapter12_1]>;
 
+
 def FeatureCmp         : SubtargetFeature<"cmp", "HasCmp", "true",
                                 "Enable 'cmp' instructions.">;
 def FeatureSlt         : SubtargetFeature<"slt", "HasSlt", "true",
@@ -75,6 +78,7 @@ def FeatureCpu032I     : SubtargetFeature<"cpu032I", "Cpu0ArchVersion",
 def FeatureCpu032II    : SubtargetFeature<"cpu032II", "Cpu0ArchVersion",
                                "Cpu032II", "Cpu032II ISA Support (slt)",
                                 [FeatureCmp, FeatureSlt, FeatureChapterAll]>;
+//#endif
 
 //===----------------------------------------------------------------------===//
 // Calling Conv, Instruction Descriptions
@@ -82,13 +86,16 @@ def FeatureCpu032II    : SubtargetFeature<"cpu032II", "Cpu0ArchVersion",
 
 include "Cpu0Schedule.td"
 include "Cpu0InstrInfo.td"
+//#if CH >= CH3_1 2
 include "Cpu0CallingConv.td"
+//#endif
 
 def Cpu0InstrInfo : InstrInfo;
 //===----------------------------------------------------------------------===//
 // Cpu0 processors supported.
 //===----------------------------------------------------------------------===//
 
+//#if CH >= CH3_1 3
 class Proc<string Name, list<SubtargetFeature> Features>
  : Processor<Name, Cpu0GenericItineraries, Features>;
 
@@ -101,7 +108,9 @@ def : Proc<"cpu032II", [FeatureCpu032II]>;
 //   FeatureCpu032II =  1ULL << 2,
 //   FeatureSlt =  1ULL << 3
 // };
+//#endif
 
+//#if CH >= CH11_1 1
 def Cpu0AsmParser : AsmParser {
   let ShouldEmitMatchRegisterName = 0;
 }
@@ -112,6 +121,7 @@ def Cpu0AsmParserVariant : AsmParserVariant {
   // Recognize hard coded registers.
   string RegisterPrefix = "$";
 }
+//#endif
 
 // Will generate Cpu0GenAsmWrite.inc included by Cpu0InstPrinter.cpp, contents
 //  as follows,
@@ -120,7 +130,8 @@ def Cpu0AsmParserVariant : AsmParserVariant {
 def Cpu0 : Target {
 // def Cpu0InstrInfo : InstrInfo as before.
   let InstructionSet = Cpu0InstrInfo;
+//#if CH >= CH11_1 2
   let AssemblyParsers = [Cpu0AsmParser];
   let AssemblyParserVariants = [Cpu0AsmParserVariant];
+//#endif
 }
-

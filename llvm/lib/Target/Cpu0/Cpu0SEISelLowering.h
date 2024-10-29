@@ -15,6 +15,7 @@
 #define LLVM_LIB_TARGET_CPU0_CPU0SEISELLOWERING_H
 
 #include "Cpu0Config.h"
+#if CH >= CH3_1
 
 #include "Cpu0ISelLowering.h"
 #include "Cpu0RegisterInfo.h"
@@ -27,11 +28,14 @@ namespace llvm {
 
     SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const override;
   private:
+#if CH >= CH9_1
     bool isEligibleForTailCallOptimization(const Cpu0CC &Cpu0CCInfo,
                                      unsigned NextStackOffset,
                                      const Cpu0FunctionInfo& FI) const override;
+#endif
   };
 }
 
-#endif // Cpu0ISEISELLOWERING_H
+#endif // #if CH >= CH3_1
 
+#endif // Cpu0ISEISELLOWERING_H

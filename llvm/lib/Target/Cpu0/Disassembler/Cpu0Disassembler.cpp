@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "Cpu0.h"
+#if CH >= CH10_1
 
 #include "Cpu0RegisterInfo.h"
 #include "Cpu0Subtarget.h"
@@ -145,6 +146,7 @@ extern "C" void LLVMInitializeCpu0Disassembler() {
                                          createCpu0elDisassembler);
 }
 
+
 #include "Cpu0GenDisassemblerTables.inc"
 
 /// Read four bytes from the ArrayRef and return 32 bit word sorted
@@ -247,9 +249,11 @@ static DecodeStatus DecodeMem(MCInst &Inst,
   int Reg = (int)fieldFromInstruction(Insn, 20, 4);
   int Base = (int)fieldFromInstruction(Insn, 16, 4);
 
+#if CH >= CH12_1 //1
   if(Inst.getOpcode() == Cpu0::SC){
     Inst.addOperand(MCOperand::createReg(Reg));
   }
+#endif
 
   Inst.addOperand(MCOperand::createReg(CPURegsTable[Reg]));
   Inst.addOperand(MCOperand::createReg(CPURegsTable[Base]));
@@ -332,3 +336,6 @@ static DecodeStatus DecodeSimm16(MCInst &Inst,
   return MCDisassembler::Success;
 }
 
+#else // #if CH >= CH11_1
+extern "C" void LLVMInitializeCpu0Disassembler() {}
+#endif // #if CH >= CH10_1

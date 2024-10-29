@@ -15,6 +15,7 @@
 #define LLVM_LIB_TARGET_CPU0_CPU0SEISELDAGTODAG_H
 
 #include "Cpu0Config.h"
+#if CH >= CH3_3
 
 #include "Cpu0ISelDAGToDAG.h"
 
@@ -38,12 +39,16 @@ private:
   // first MBB of the function.
 //  void initGlobalBaseReg(MachineFunction &MF);
 
+#if CH >= CH4_1
   std::pair<SDNode *, SDNode *> selectMULT(SDNode *N, unsigned Opc,
                                            const SDLoc &DL, EVT Ty, bool HasLo,
                                            bool HasHi);
+#endif
 
+#if CH >= CH7_1
   void selectAddESubE(unsigned MOp, SDValue InFlag, SDValue CmpLHS,
                       const SDLoc &DL, SDNode *Node) const;
+#endif
 };
 
 FunctionPass *createCpu0SEISelDag(Cpu0TargetMachine &TM,
@@ -51,5 +56,6 @@ FunctionPass *createCpu0SEISelDag(Cpu0TargetMachine &TM,
 
 }
 
-#endif
+#endif // #if CH >= CH3_3
 
+#endif

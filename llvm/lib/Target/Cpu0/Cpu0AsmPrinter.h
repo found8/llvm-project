@@ -15,6 +15,7 @@
 #define LLVM_LIB_TARGET_CPU0_CPU0ASMPRINTER_H
 
 #include "Cpu0Config.h"
+#if CH >= CH3_2
 
 #include "Cpu0MachineFunction.h"
 #include "Cpu0MCInstLower.h"
@@ -37,19 +38,25 @@ class LLVM_LIBRARY_VISIBILITY Cpu0AsmPrinter : public AsmPrinter {
   void EmitInstrWithMacroNoAT(const MachineInstr *MI);
 
 private:
+#if CH >= CH9_1
   // tblgen'erated function.
   bool emitPseudoExpansionLowering(MCStreamer &OutStreamer,
                                    const MachineInstr *MI);
+#endif
 
+#if CH >= CH9_3 //1
 #ifdef ENABLE_GPRESTORE
   void emitPseudoCPRestore(MCStreamer &OutStreamer,
                            const MachineInstr *MI);
 #endif
+#endif //#if CH >= CH9_3 //1
 
   // lowerOperand - Convert a MachineOperand into the equivalent MCOperand.
   bool lowerOperand(const MachineOperand &MO, MCOperand &MCOp);
 
+#if CH >= CH8_2 //1
   bool isLongBranchPseudo(int Opcode) const;
+#endif
 
 public:
 
@@ -79,15 +86,19 @@ public:
   void emitFunctionEntryLabel() override;
   void emitFunctionBodyStart() override;
   void emitFunctionBodyEnd() override;
+#if CH >= CH11_2
   bool PrintAsmOperand(const MachineInstr *MI, unsigned OpNo,
                        const char *ExtraCode, raw_ostream &O) override;
   bool PrintAsmMemoryOperand(const MachineInstr *MI, unsigned OpNum,
                              const char *ExtraCode, raw_ostream &O) override;
   void printOperand(const MachineInstr *MI, int opNum, raw_ostream &O);
+#endif
   void emitStartOfAsmFile(Module &M) override;
   void PrintDebugValueComment(const MachineInstr *MI, raw_ostream &OS);
 };
 }
+
+#endif // #if CH >= CH3_2
 
 #endif
 

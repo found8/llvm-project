@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "Cpu0Config.h"
+#if CH >= CH3_1
 
 #include "Cpu0ABIInfo.h"
 #include "Cpu0RegisterInfo.h"
@@ -91,4 +92,4 @@ int Cpu0ABIInfo::EhDataRegSize() const {
   else
     return 2;
 }
-
+#endif // CH >= CH3_1

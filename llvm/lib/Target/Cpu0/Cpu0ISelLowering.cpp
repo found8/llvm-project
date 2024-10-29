@@ -12,8 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 #include "Cpu0ISelLowering.h"
+#if CH >= CH3_1
 
+#if CH >= CH3_2
 #include "MCTargetDesc/Cpu0BaseInfo.h"
+#endif
 #include "Cpu0MachineFunction.h"
 #include "Cpu0TargetMachine.h"
 #include "Cpu0TargetObjectFile.h"
@@ -38,8 +41,11 @@ using namespace llvm;
 
 #define DEBUG_TYPE "cpu0-lower"
 
+#if CH >= CH9_1 //1
 STATISTIC(NumTailCalls, "Number of tail calls");
+#endif
 
+#if CH >= CH6_1 //1
 SDValue Cpu0TargetLowering::getGlobalReg(SelectionDAG &DAG, EVT Ty) const {
   Cpu0FunctionInfo *FI = DAG.getMachineFunction().getInfo<Cpu0FunctionInfo>();
   return DAG.getRegister(FI->getGlobalBaseReg(), Ty);
@@ -58,7 +64,9 @@ SDValue Cpu0TargetLowering::getTargetNode(ExternalSymbolSDNode *N, EVT Ty,
                                           unsigned Flag) const {
   return DAG.getTargetExternalSymbol(N->getSymbol(), Ty, Flag);
 }
+#endif
 
+#if CH >= CH8_1 //1
 SDValue Cpu0TargetLowering::getTargetNode(BlockAddressSDNode *N, EVT Ty,
                                           SelectionDAG &DAG,
                                           unsigned Flag) const {
@@ -70,6 +78,7 @@ SDValue Cpu0TargetLowering::getTargetNode(JumpTableSDNode *N, EVT Ty,
                                           unsigned Flag) const {
   return DAG.getTargetJumpTable(N->getIndex(), Ty, Flag);
 }
+#endif
 
 //@3_1 1 {
 const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
@@ -84,7 +93,9 @@ const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
   case Cpu0ISD::DivRem:            return "Cpu0ISD::DivRem";
   case Cpu0ISD::DivRemU:           return "Cpu0ISD::DivRemU";
   case Cpu0ISD::Wrapper:           return "Cpu0ISD::Wrapper";
+#if CH >= CH12_1 //0.5
   case Cpu0ISD::Sync:              return "Cpu0ISD::Sync";
+#endif //#if CH >= CH12_1 //0.5
   default:                         return NULL;
   }
 }
@@ -95,6 +106,9 @@ Cpu0TargetLowering::Cpu0TargetLowering(const Cpu0TargetMachine &TM,
                                        const Cpu0Subtarget &STI)
     : TargetLowering(TM), Subtarget(STI), ABI(TM.getABI()) {
 
+#if CH >= CH3_2
+
+#if CH >= CH7_1 //1
   // Cpu0 does not have i1 type, so use i32 for
   // setcc operations results (slt, sgt, ...).
   setBooleanContents(ZeroOrOneBooleanContent);
@@ -106,51 +120,83 @@ Cpu0TargetLowering::Cpu0TargetLowering(const Cpu0TargetMachine &TM,
     setLoadExtAction(ISD::ZEXTLOAD, VT, MVT::i1,  Promote);
     setLoadExtAction(ISD::SEXTLOAD, VT, MVT::i1,  Promote);
   }
+#endif
 
+#if CH >= CH8_1 //2
   // Used by legalize types to correctly generate the setcc result.
   // Without this, every float setcc comes with a AND/OR with the result,
   // we don't want this, since the fpcmp result goes to a flag register,
   // which is used implicitly by brcond and select operations.
   AddPromotedToType(ISD::SETCC, MVT::i1, MVT::i32);
+#endif
 
   // Cpu0 Custom Operations
+#if CH >= CH6_1 //2
   setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
+#endif
+#if CH >= CH12_1 //1
   setOperationAction(ISD::GlobalTLSAddress,   MVT::i32,   Custom);
+#endif
+#if CH >= CH8_1 //3
   setOperationAction(ISD::BlockAddress,       MVT::i32,   Custom);
   setOperationAction(ISD::JumpTable,          MVT::i32,   Custom);
+#endif
+#if CH >= CH8_2 //1
   setOperationAction(ISD::SELECT,             MVT::i32,   Custom);
+#endif
+#if CH >= CH8_1 //4
   setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
+#endif
+#if CH >= CH9_3 //0.5
   setOperationAction(ISD::EH_RETURN, MVT::Other, Custom);
+#endif
+#if CH >= CH9_3 //1
   setOperationAction(ISD::VASTART,            MVT::Other, Custom);
+#endif
 
+#if CH >= CH7_1 //2
   // Handle i64 shl
   setOperationAction(ISD::SHL_PARTS,          MVT::i32,   Expand);
   setOperationAction(ISD::SRA_PARTS,          MVT::i32,   Expand);
   setOperationAction(ISD::SRL_PARTS,          MVT::i32,   Expand);
+#endif
 
+#if CH >= CH9_3 //0.7
   setOperationAction(ISD::ADD,                MVT::i32,   Custom);
+#endif
 
+#if CH >= CH4_1 //1
   setOperationAction(ISD::SDIV, MVT::i32, Expand);
   setOperationAction(ISD::SREM, MVT::i32, Expand);
   setOperationAction(ISD::UDIV, MVT::i32, Expand);
   setOperationAction(ISD::UREM, MVT::i32, Expand);
+#endif
 
   // Operations not directly supported by Cpu0.
+#if CH >= CH8_1 //5
   setOperationAction(ISD::BR_JT,             MVT::Other, Expand);
   setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
+#endif
+#if CH >= CH8_2 //2
   setOperationAction(ISD::SELECT_CC,         MVT::i32, Expand);
   setOperationAction(ISD::SELECT_CC,         MVT::Other, Expand);
+#endif
+#if CH >= CH7_1 //3
   setOperationAction(ISD::CTPOP,             MVT::i32,   Expand);
   setOperationAction(ISD::CTTZ,              MVT::i32,   Expand);
   setOperationAction(ISD::CTTZ_ZERO_UNDEF,   MVT::i32,   Expand);
   setOperationAction(ISD::CTLZ_ZERO_UNDEF,   MVT::i32,   Expand);
+#endif
+#if CH >= CH4_2 //1.2
   // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i8 , Expand);
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i16 , Expand);
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i32 , Expand);
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::Other , Expand);
+#endif
 
+#if CH >= CH9_3 //2
   setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i32,  Expand);
 
   //@vararg 1 {
@@ -164,24 +210,34 @@ Cpu0TargetLowering::Cpu0TargetLowering(const Cpu0TargetMachine &TM,
   // Use the default for now
   setOperationAction(ISD::STACKSAVE,         MVT::Other, Expand);
   setOperationAction(ISD::STACKRESTORE,      MVT::Other, Expand);
+#endif
 
+#if CH >= CH12_1 //1.5
   setOperationAction(ISD::ATOMIC_LOAD,       MVT::i32,    Expand);
   setOperationAction(ISD::ATOMIC_LOAD,       MVT::i64,    Expand);
   setOperationAction(ISD::ATOMIC_STORE,      MVT::i32,    Expand);
   setOperationAction(ISD::ATOMIC_STORE,      MVT::i64,    Expand);
+#endif
 
+#if CH >= CH9_3 //2.5
   setOperationAction(ISD::BSWAP, MVT::i32, Expand);
   setOperationAction(ISD::BSWAP, MVT::i64, Expand);
+#endif
 
+#if CH >= CH4_1 //2
   setTargetDAGCombine(ISD::SDIVREM);
   setTargetDAGCombine(ISD::UDIVREM);
+#endif
 
 //- Set .align 2
 // It will emit .align 2 later
   setMinFunctionAlignment(Align(2));
 
+#if CH >= CH9_3 //3
   setStackPointerRegisterToSaveRestore(Cpu0::SP);
+#endif
 
+#endif // #if CH >= CH3_2
 }
 
 const Cpu0TargetLowering *Cpu0TargetLowering::create(const Cpu0TargetMachine &TM,
@@ -189,13 +245,16 @@ const Cpu0TargetLowering *Cpu0TargetLowering::create(const Cpu0TargetMachine &TM
   return llvm::createCpu0SETargetLowering(TM, STI);
 }
 
+#if CH >= CH7_1 //3.5
 EVT Cpu0TargetLowering::getSetCCResultType(const DataLayout &, LLVMContext &,
                                            EVT VT) const {
   if (!VT.isVector())
     return MVT::i32;
   return VT.changeVectorElementTypeToInteger();
 }
+#endif
 
+#if CH >= CH4_1 //3
 static SDValue performDivRemCombine(SDNode *N, SelectionDAG& DAG,
                                     TargetLowering::DAGCombinerInfo &DCI,
                                     const Cpu0Subtarget &Subtarget) {
@@ -247,32 +306,50 @@ SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI)
 
   return SDValue();
 }
+#endif
 
+#if CH >= CH6_1 //3
 SDValue Cpu0TargetLowering::
 LowerOperation(SDValue Op, SelectionDAG &DAG) const
 {
   switch (Op.getOpcode())
   {
+#if CH >= CH8_1 //6
   case ISD::BRCOND:             return lowerBRCOND(Op, DAG);
+#endif //#if CH >= CH8_1
   case ISD::GlobalAddress:      return lowerGlobalAddress(Op, DAG);
+#if CH >= CH12_1 //3
   case ISD::GlobalTLSAddress:   return lowerGlobalTLSAddress(Op, DAG);
+#endif
+#if CH >= CH8_1 //7
   case ISD::BlockAddress:       return lowerBlockAddress(Op, DAG);
   case ISD::JumpTable:          return lowerJumpTable(Op, DAG);
+#endif
+#if CH >= CH8_2 //3
   case ISD::SELECT:             return lowerSELECT(Op, DAG);
+#endif
+#if CH >= CH9_3 //4
   case ISD::VASTART:            return lowerVASTART(Op, DAG);
+#endif //#if CH >= CH9_3 //4
+#if CH >= CH9_3 //4.5
   case ISD::FRAMEADDR:          return lowerFRAMEADDR(Op, DAG);
   case ISD::RETURNADDR:         return lowerRETURNADDR(Op, DAG);
   case ISD::EH_RETURN:          return lowerEH_RETURN(Op, DAG);
   case ISD::ADD:                return lowerADD(Op, DAG);
+#endif //#if CH >= CH9_3 //4.5
+#if CH >= CH12_1 //7
   case ISD::ATOMIC_FENCE:       return lowerATOMIC_FENCE(Op, DAG);
+#endif //#if CH >= CH12_1 //7
   }
   return SDValue();
 }
+#endif
 
 //===----------------------------------------------------------------------===//
 //  Lower helper functions
 //===----------------------------------------------------------------------===//
 
+#if CH >= CH9_1 //2
 // addLiveIn - This helper function adds the specified physical register to the
 // MachineFunction as a live in value.  It also creates a corresponding
 // virtual register for it.
@@ -283,7 +360,9 @@ addLiveIn(MachineFunction &MF, unsigned PReg, const TargetRegisterClass *RC)
   MF.getRegInfo().addLiveIn(PReg, VReg);
   return VReg;
 }
+#endif
 
+#if CH >= CH12_1 //8
 MachineBasicBlock *
 Cpu0TargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
                                                 MachineBasicBlock *BB) const {
@@ -824,22 +903,28 @@ Cpu0TargetLowering::emitAtomicCmpSwapPartword(MachineInstr &MI,
 
   return exitMBB;
 }
+#endif
 
 //===----------------------------------------------------------------------===//
 //  Misc Lower Operation implementation
 //===----------------------------------------------------------------------===//
+#if CH >= CH8_1 //8
 SDValue Cpu0TargetLowering::
 lowerBRCOND(SDValue Op, SelectionDAG &DAG) const
 {
   return Op;
 }
+#endif
 
+#if CH >= CH8_2 //4
 SDValue Cpu0TargetLowering::
 lowerSELECT(SDValue Op, SelectionDAG &DAG) const
 {
   return Op;
 }
+#endif
 
+#if CH >= CH6_1 //4
 SDValue Cpu0TargetLowering::lowerGlobalAddress(SDValue Op,
                                                SelectionDAG &DAG) const {
   //@lowerGlobalAddress }
@@ -883,7 +968,9 @@ SDValue Cpu0TargetLowering::lowerGlobalAddress(SDValue Op,
       N, Ty, DAG, Cpu0II::MO_GOT, DAG.getEntryNode(),
       MachinePointerInfo::getGOT(DAG.getMachineFunction()));
 }
+#endif
 
+#if CH >= CH12_1 //4
 SDValue Cpu0TargetLowering::
 lowerGlobalTLSAddress(SDValue Op, SelectionDAG &DAG) const
 {
@@ -962,7 +1049,9 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &DAG) const
   }
   return Offset;
 }
+#endif
 
+#if CH >= CH8_1 //9
 SDValue Cpu0TargetLowering::lowerBlockAddress(SDValue Op,
                                               SelectionDAG &DAG) const {
   BlockAddressSDNode *N = cast<BlockAddressSDNode>(Op);
@@ -985,7 +1074,9 @@ lowerJumpTable(SDValue Op, SelectionDAG &DAG) const
 
   return getAddrLocal(N, Ty, DAG);
 }
+#endif
 
+#if CH >= CH9_3 //5
 SDValue Cpu0TargetLowering::lowerVASTART(SDValue Op, SelectionDAG &DAG) const {
   MachineFunction &MF = DAG.getMachineFunction();
   Cpu0FunctionInfo *FuncInfo = MF.getInfo<Cpu0FunctionInfo>();
@@ -1000,7 +1091,9 @@ SDValue Cpu0TargetLowering::lowerVASTART(SDValue Op, SelectionDAG &DAG) const {
   return DAG.getStore(Op.getOperand(0), DL, FI, Op.getOperand(1),
                       MachinePointerInfo(SV));
 }
+#endif
 
+#if CH >= CH9_3 //5.5
 SDValue Cpu0TargetLowering::
 lowerFRAMEADDR(SDValue Op, SelectionDAG &DAG) const {
   // check the depth
@@ -1077,7 +1170,9 @@ SDValue Cpu0TargetLowering::lowerADD(SDValue Op, SelectionDAG &DAG) const {
   Cpu0FI->setCallsEhDwarf();
   return Op;
 }
+#endif
 
+#if CH >= CH12_1 //9
 SDValue Cpu0TargetLowering::lowerATOMIC_FENCE(SDValue Op,
                                               SelectionDAG &DAG) const {
   // FIXME: Need pseudo-fence for 'singlethread' fences
@@ -1087,7 +1182,9 @@ SDValue Cpu0TargetLowering::lowerATOMIC_FENCE(SDValue Op,
   return DAG.getNode(Cpu0ISD::Sync, DL, MVT::Other, Op.getOperand(0),
                      DAG.getConstant(SType, DL, MVT::i32));
 }
+#endif
 
+#if CH >= CH9_1 //3
 //===----------------------------------------------------------------------===//
 // TODO: Implement a generic logic using tblgen that can support this.
 // Cpu0 32 ABI rules:
@@ -1177,9 +1274,11 @@ static bool CC_Cpu0O32(unsigned ValNo, MVT ValVT, MVT LocVT,
 
   return false;
 }
+#endif // #if CH >= CH9_1
 
 #include "Cpu0GenCallingConv.inc"
 
+#if CH >= CH9_1 //4
 //===----------------------------------------------------------------------===//
 //                  Call Calling Convention Implementation
 //===----------------------------------------------------------------------===//
@@ -1187,7 +1286,9 @@ static bool CC_Cpu0O32(unsigned ValNo, MVT ValVT, MVT LocVT,
 static const MCPhysReg O32IntRegs[] = {
   Cpu0::A0, Cpu0::A1
 };
+#endif // #if CH >= CH9_1
 
+#if CH >= CH9_2 //1
 SDValue
 Cpu0TargetLowering::passArgOnStack(SDValue StackPtr, unsigned Offset,
                                    SDValue Chain, SDValue Arg, const SDLoc &DL,
@@ -1258,13 +1359,16 @@ getOpndList(SmallVectorImpl<SDValue> &Ops,
   if (InFlag.getNode())
     Ops.push_back(InFlag);
 }
+#endif // #if CH >= CH9_2 //1
 
+#if CH >= CH9_1 //5
 //@LowerCall {
 /// LowerCall - functions arguments are copied from virtual regs to
 /// (physical regs)/(stack frame), CALLSEQ_START and CALLSEQ_END are emitted.
 SDValue
 Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                               SmallVectorImpl<SDValue> &InVals) const {
+#if CH >= CH9_2 //2
   SelectionDAG &DAG                     = CLI.DAG;
   SDLoc DL                              = CLI.DL;
   SmallVectorImpl<ISD::OutputArg> &Outs = CLI.Outs;
@@ -1299,6 +1403,7 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   // Get a count of how many bytes are to be pushed on the stack.
   unsigned NextStackOffset = CCInfo.getNextStackOffset();
 
+#if CH >= CH9_3 //6
 #ifdef ENABLE_GPRESTORE
   if (!Cpu0ReserveGP) {
     // If this is the first call, create a stack frame object that points to
@@ -1309,6 +1414,7 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
       MFI.setObjectOffset(Cpu0FI->getGPFI(), NextStackOffset);
   }
 #endif
+#endif //#if CH >= CH9_3 //6
 
   //@TailCall 1 {
   // Check if it's really possible to do a tail call.
@@ -1467,9 +1573,14 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   // return.
   return LowerCallResult(Chain, InFlag, CallConv, IsVarArg,
                          Ins, DL, DAG, InVals, CLI.Callee.getNode(), CLI.RetTy);
+#else // CH >= CH9_2 //2
+  return CLI.Chain;
+#endif
 }
 //@LowerCall }
+#endif // #if CH >= CH9_1
 
+#if CH >= CH9_2 //3
 /// LowerCallResult - Lower the result values of a call into the
 /// appropriate copies out of appropriate physical registers.
 SDValue
@@ -1505,11 +1616,13 @@ Cpu0TargetLowering::LowerCallResult(SDValue Chain, SDValue InFlag,
 
   return Chain;
 }
+#endif
 
 //===----------------------------------------------------------------------===//
 //@            Formal Arguments Calling Convention Implementation
 //===----------------------------------------------------------------------===//
 
+#if CH >= CH3_1
 //@LowerFormalArguments {
 /// LowerFormalArguments - transform physical registers into virtual registers
 /// and generate load operations for arguments places on the stack.
@@ -1521,6 +1634,7 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
                                          const SDLoc &DL, SelectionDAG &DAG,
                                          SmallVectorImpl<SDValue> &InVals)
                                           const {
+#if CH >= CH3_4
   MachineFunction &MF = DAG.getMachineFunction();
   MachineFrameInfo &MFI = MF.getFrameInfo();
   Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
@@ -1533,16 +1647,22 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
                  ArgLocs, *DAG.getContext());
   Cpu0CC Cpu0CCInfo(CallConv, ABI.IsO32(),
                     CCInfo);
+#endif
 
+#if CH >= CH9_1 //6
   const Function &Func = DAG.getMachineFunction().getFunction();
   Function::const_arg_iterator FuncArg = Func.arg_begin();
 
   bool UseSoftFloat = Subtarget.abiUsesSoftFloat();
 
   Cpu0CCInfo.analyzeFormalArguments(Ins, UseSoftFloat, FuncArg);
+#endif // #if CH >= CH9_1 //6
+#if CH >= CH3_4
   Cpu0FI->setFormalArgInfo(CCInfo.getNextStackOffset(),
                            Cpu0CCInfo.hasByValArg());
+#endif
 
+#if CH >= CH9_1 //6.3
   // Used with vargs to acumulate store chains.
   std::vector<SDValue> OutChains;
 
@@ -1642,8 +1762,10 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
   }
 //@Ordinary struct type: 1 }
 
+#if CH >= CH9_3 //7
   if (IsVarArg)
     writeVarArgRegs(OutChains, Cpu0CCInfo, Chain, DL, DAG);
+#endif
 
   // All stores are grouped in one node to allow the matching between
   // the size of Ins and InVals. This only happens when on varg functions
@@ -1651,15 +1773,18 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
     OutChains.push_back(Chain);
     Chain = DAG.getNode(ISD::TokenFactor, DL, MVT::Other, OutChains);
   }
+#endif // #if CH >= CH9_1
 
   return Chain;
 }
 // @LowerFormalArguments }
+#endif // #if CH >= CH3_1
 
 //===----------------------------------------------------------------------===//
 //@              Return Value Calling Convention Implementation
 //===----------------------------------------------------------------------===//
 
+#if CH >= CH9_2 //4
 bool
 Cpu0TargetLowering::CanLowerReturn(CallingConv::ID CallConv,
                                    MachineFunction &MF, bool IsVarArg,
@@ -1670,13 +1795,16 @@ Cpu0TargetLowering::CanLowerReturn(CallingConv::ID CallConv,
                  RVLocs, Context);
   return CCInfo.CheckReturn(Outs, RetCC_Cpu0);
 }
+#endif
 
+#if CH >= CH3_1 //LowerReturn
 SDValue
 Cpu0TargetLowering::LowerReturn(SDValue Chain,
                                 CallingConv::ID CallConv, bool IsVarArg,
                                 const SmallVectorImpl<ISD::OutputArg> &Outs,
                                 const SmallVectorImpl<SDValue> &OutVals,
                                 const SDLoc &DL, SelectionDAG &DAG) const {
+#if CH >= CH3_4 //in LowerReturn
   // CCValAssign - represent the assignment of
   // the return value to a location
   SmallVector<CCValAssign, 16> RVLocs;
@@ -1740,8 +1868,14 @@ Cpu0TargetLowering::LowerReturn(SDValue Chain,
 
   // Return on Cpu0 is always a "ret $lr"
   return DAG.getNode(Cpu0ISD::Ret, DL, MVT::Other, RetOps);
+#else // #if CH >= CH3_4
+  return DAG.getNode(Cpu0ISD::Ret, DL, MVT::Other,
+                     Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
+#endif
 }
+#endif // #if CH >= CH3_1
 
+#if CH >= CH11_2
 //===----------------------------------------------------------------------===//
 //                           Cpu0 Inline Assembly Support
 //===----------------------------------------------------------------------===//
@@ -2002,20 +2136,26 @@ bool Cpu0TargetLowering::isLegalAddressingMode(const DataLayout &DL,
 
   return true;
 }
+#endif // #if CH >= CH11_2
 
+#if CH >= CH7_1 //4
 bool
 Cpu0TargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
   // The Cpu0 target isn't yet aware of offsets.
   return false;
 }
+#endif
 
+#if CH >= CH9_2 //5
 Cpu0TargetLowering::Cpu0CC::SpecialCallingConvType
   Cpu0TargetLowering::getSpecialCallingConv(SDValue Callee) const {
   Cpu0CC::SpecialCallingConvType SpecialCallingConv =
     Cpu0CC::NoSpecialCallingConv;
   return SpecialCallingConv;
 }
+#endif
 
+#if CH >= CH3_4
 Cpu0TargetLowering::Cpu0CC::Cpu0CC(
   CallingConv::ID CC, bool IsO32_, CCState &Info,
   Cpu0CC::SpecialCallingConvType SpecialCallingConv_)
@@ -2023,7 +2163,9 @@ Cpu0TargetLowering::Cpu0CC::Cpu0CC(
   // Pre-allocate reserved argument area.
   CCInfo.AllocateStack(reservedArgArea(), Align(1));
 }
+#endif
 
+#if CH >= CH9_2 //6
 //@#if CH >= CH9_2 //6 {
 void Cpu0TargetLowering::Cpu0CC::
 analyzeCallOperands(const SmallVectorImpl<ISD::OutputArg> &Args,
@@ -2035,7 +2177,9 @@ analyzeCallOperands(const SmallVectorImpl<ISD::OutputArg> &Args,
 
   unsigned NumOpnds = Args.size();
   llvm::CCAssignFn *FixedFn = fixedArgFn();
+#if CH >= CH9_3 //8
   llvm::CCAssignFn *VarFn = varArgFn();
+#endif
 
   //@3 {
   for (unsigned I = 0; I != NumOpnds; ++I) {
@@ -2049,9 +2193,11 @@ analyzeCallOperands(const SmallVectorImpl<ISD::OutputArg> &Args,
       continue;
     }
 
+#if CH >= CH9_3 //9
     if (IsVarArg && !Args[I].IsFixed)
       R = VarFn(I, ArgVT, ArgVT, CCValAssign::Full, ArgFlags, CCInfo);
     else
+#endif
     {
       MVT RegVT = getRegVT(ArgVT, IsSoftFloat);
       R = FixedFn(I, ArgVT, RegVT, CCValAssign::Full, ArgFlags, CCInfo);
@@ -2067,7 +2213,9 @@ analyzeCallOperands(const SmallVectorImpl<ISD::OutputArg> &Args,
   }
 }
 //@#if CH >= CH9_2 //6 }
+#endif
 
+#if CH >= CH9_1 //7
 void Cpu0TargetLowering::Cpu0CC::
 analyzeFormalArguments(const SmallVectorImpl<ISD::InputArg> &Args,
                        bool IsSoftFloat, Function::const_arg_iterator FuncArg) {
@@ -2101,7 +2249,9 @@ analyzeFormalArguments(const SmallVectorImpl<ISD::InputArg> &Args,
     llvm_unreachable(nullptr);
   }
 }
+#endif // #if CH >= CH9_1
 
+#if CH >= CH3_4 //analyzeReturn
 template<typename Ty>
 void Cpu0TargetLowering::Cpu0CC::
 analyzeReturn(const SmallVectorImpl<Ty> &RetVals, bool IsSoftFloat,
@@ -2136,7 +2286,9 @@ analyzeReturn(const SmallVectorImpl<ISD::OutputArg> &Outs, bool IsSoftFloat,
               const Type *RetTy) const {
   analyzeReturn(Outs, IsSoftFloat, nullptr, RetTy);
 }
+#endif // #if CH >= CH3_4 //analyzeReturn
 
+#if CH >= CH9_1 //8
 void Cpu0TargetLowering::Cpu0CC::handleByValArg(unsigned ValNo, MVT ValVT,
                                                 MVT LocVT,
                                                 CCValAssign::LocInfo LocInfo,
@@ -2163,11 +2315,15 @@ void Cpu0TargetLowering::Cpu0CC::handleByValArg(unsigned ValNo, MVT ValVT,
 unsigned Cpu0TargetLowering::Cpu0CC::numIntArgRegs() const {
   return IsO32 ? array_lengthof(O32IntRegs) : 0;
 }
+#endif // #if CH >= CH9_1
 
+#if CH >= CH3_4 //reservedArgArea
 unsigned Cpu0TargetLowering::Cpu0CC::reservedArgArea() const {
   return (IsO32 && (CallConv != CallingConv::Fast)) ? 8 : 0;
 }
+#endif
 
+#if CH >= CH9_1 //9
 const ArrayRef<MCPhysReg> Cpu0TargetLowering::Cpu0CC::intArgRegs() const {
   return makeArrayRef(O32IntRegs);
 }
@@ -2178,14 +2334,18 @@ llvm::CCAssignFn *Cpu0TargetLowering::Cpu0CC::fixedArgFn() const {
   else // IsS32
     return CC_Cpu0S32;
 }
+#endif // #if CH >= CH9_1
 
+#if CH >= CH9_3 //10
 llvm::CCAssignFn *Cpu0TargetLowering::Cpu0CC::varArgFn() const {
   if (IsO32)
     return CC_Cpu0O32;
   else // IsS32
     return CC_Cpu0S32;
 }
+#endif
 
+#if CH >= CH9_1 //10
 void Cpu0TargetLowering::Cpu0CC::allocateRegs(ByValArgInfo &ByVal,
                                               unsigned ByValSize,
                                               unsigned Align) {
@@ -2208,7 +2368,9 @@ void Cpu0TargetLowering::Cpu0CC::allocateRegs(ByValArgInfo &ByVal,
        ByValSize -= RegSize, ++I, ++ByVal.NumRegs)
     CCInfo.AllocateReg(IntArgRegs[I]);
 }
+#endif
 
+#if CH >= CH3_4 //getRegVT
 MVT Cpu0TargetLowering::Cpu0CC::getRegVT(MVT VT,
                                          bool IsSoftFloat) const {
   if (IsSoftFloat || IsO32)
@@ -2216,7 +2378,9 @@ MVT Cpu0TargetLowering::Cpu0CC::getRegVT(MVT VT,
 
   return VT;
 }
+#endif
 
+#if CH >= CH9_1 //11
 void Cpu0TargetLowering::
 copyByValRegs(SDValue Chain, const SDLoc &DL, std::vector<SDValue> &OutChains,
               SelectionDAG &DAG, const ISD::ArgFlagsTy &Flags,
@@ -2260,7 +2424,9 @@ copyByValRegs(SDValue Chain, const SDLoc &DL, std::vector<SDValue> &OutChains,
     OutChains.push_back(Store);
   }
 }
+#endif
 
+#if CH >= CH9_2 //7
 // Copy byVal arg to registers and stack.
 void Cpu0TargetLowering::
 passByValArg(SDValue Chain, const SDLoc &DL,
@@ -2359,7 +2525,9 @@ passByValArg(SDValue Chain, const SDLoc &DL,
                         MachinePointerInfo(), MachinePointerInfo());
   MemOpChains.push_back(Chain);
 }
+#endif // #if CH >= CH9_2 //7
 
+#if CH >= CH9_3 //11
 void Cpu0TargetLowering::writeVarArgRegs(std::vector<SDValue> &OutChains,
                                          const Cpu0CC &CC, SDValue Chain,
                                          const SDLoc &DL, SelectionDAG &DAG) const {
@@ -2403,4 +2571,6 @@ void Cpu0TargetLowering::writeVarArgRegs(std::vector<SDValue> &OutChains,
     OutChains.push_back(Store);
   }
 }
+#endif // #if CH >= CH9_3
 
+#endif // #if CH >= CH3_1

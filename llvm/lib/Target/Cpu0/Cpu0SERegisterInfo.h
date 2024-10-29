@@ -16,6 +16,7 @@
 #define LLVM_LIB_TARGET_CPU0_CPU0SEREGISTERINFO_H
 
 #include "Cpu0Config.h"
+#if CH >= CH3_1
 
 #include "Cpu0RegisterInfo.h"
 
@@ -31,5 +32,6 @@ public:
 
 } // end namespace llvm
 
-#endif
+#endif // #if CH >= CH3_1
 
+#endif
