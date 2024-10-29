@@ -110,7 +110,7 @@ public:
   }
 
   bool hasChapter11_1() const {
-    return false;
+    return true;
   }
 
   bool hasChapter11_2() const {
