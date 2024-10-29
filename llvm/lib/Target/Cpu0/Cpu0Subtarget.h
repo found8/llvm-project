@@ -118,7 +118,7 @@ public:
   }
 
   bool hasChapter12_1() const {
-    return false;
+    return true;
   }
 
 protected:

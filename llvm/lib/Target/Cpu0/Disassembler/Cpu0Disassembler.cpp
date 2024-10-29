@@ -247,6 +247,10 @@ static DecodeStatus DecodeMem(MCInst &Inst,
   int Reg = (int)fieldFromInstruction(Insn, 20, 4);
   int Base = (int)fieldFromInstruction(Insn, 16, 4);
 
+  if(Inst.getOpcode() == Cpu0::SC){
+    Inst.addOperand(MCOperand::createReg(Reg));
+  }
+
   Inst.addOperand(MCOperand::createReg(CPURegsTable[Reg]));
   Inst.addOperand(MCOperand::createReg(CPURegsTable[Base]));
   Inst.addOperand(MCOperand::createImm(Offset));
