@@ -14,6 +14,7 @@
 #define DEBUG_TYPE "cpu0-reg-info"
 
 #include "Cpu0RegisterInfo.h"
+#if CH >= CH3_1
 
 #include "Cpu0.h"
 #include "Cpu0Subtarget.h"
@@ -33,11 +34,13 @@ using namespace llvm;
 Cpu0RegisterInfo::Cpu0RegisterInfo(const Cpu0Subtarget &ST)
   : Cpu0GenRegisterInfo(Cpu0::LR), Subtarget(ST) {}
 
+#if CH >= CH12_1 //1
 const TargetRegisterClass *
 Cpu0RegisterInfo::getPointerRegClass(const MachineFunction &MF,
                                      unsigned Kind) const {
   return &Cpu0::CPURegsRegClass;
 }
+#endif
 
 //===----------------------------------------------------------------------===//
 // Callee Saved Registers methods
@@ -71,17 +74,21 @@ getReservedRegs(const MachineFunction &MF) const {
   for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
     Reserved.set(ReservedCPURegs[I]);
 
+#if CH >= CH9_3 //2
   // Reserve FP if this function should have a dedicated frame pointer register.
   if (MF.getSubtarget().getFrameLowering()->hasFP(MF)) {
     Reserved.set(Cpu0::FP);
   }
+#endif
 
+#if CH >= CH6_1
 #ifdef ENABLE_GPRESTORE //1
   const Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
   // Reserve GP if globalBaseRegFixed()
   if (Cpu0FI->globalBaseRegFixed())
 #endif
     Reserved.set(Cpu0::GP);
+#endif //#if CH >= CH6_1
 
   return Reserved;
 }
@@ -95,6 +102,7 @@ getReservedRegs(const MachineFunction &MF) const {
 void Cpu0RegisterInfo::
 eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
                     unsigned FIOperandNum, RegScavenger *RS) const {
+#if CH >= CH3_5
   MachineInstr &MI = *II;
   MachineFunction &MF = *MI.getParent()->getParent();
   MachineFrameInfo &MFI = MF.getFrameInfo();
@@ -135,11 +143,15 @@ eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
   // getFrameRegister() returns.
   unsigned FrameReg;
 
+#if CH >= CH9_3 //3
   if (Cpu0FI->isOutArgFI(FrameIndex) || Cpu0FI->isDynAllocFI(FrameIndex) ||
       (FrameIndex >= MinCSFI && FrameIndex <= MaxCSFI))
     FrameReg = Cpu0::SP;
   else
     FrameReg = getFrameRegister(MF);
+#else
+  FrameReg = Cpu0::SP;
+#endif //#if CH >= CH9_3 //3
 
   // Calculate final offset.
   // - There is no need to change the offset if the frame object is one of the
@@ -149,12 +161,14 @@ eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
   //   by adding the size of the stack:
   //   incoming argument, callee-saved register location or local variable.
   int64_t Offset;
+#if CH >= CH9_3 //1
 #ifdef ENABLE_GPRESTORE //2
   if (Cpu0FI->isOutArgFI(FrameIndex) || Cpu0FI->isGPFI(FrameIndex) ||
       Cpu0FI->isDynAllocFI(FrameIndex))
     Offset = spOffset;
   else
 #endif
+#endif //#if CH >= CH9_3 //1
     Offset = spOffset + (int64_t)stackSize;
 
   Offset    += MI.getOperand(i+1).getImm();
@@ -178,6 +192,7 @@ eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
 
   MI.getOperand(i).ChangeToRegister(FrameReg, false);
   MI.getOperand(i+1).ChangeToImmediate(Offset);
+#endif // #if CH >= CH3_5
 }
 //}
 
@@ -199,3 +214,4 @@ getFrameRegister(const MachineFunction &MF) const {
                           (Cpu0::SP);
 }
 
+#endif // #if CH >= CH3_1

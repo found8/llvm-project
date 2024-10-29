@@ -16,6 +16,7 @@
 #define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCCODEEMITTER_H
 
 #include "Cpu0Config.h"
+#if CH >= CH5_1
 
 #include "llvm/MC/MCCodeEmitter.h"
 #include "llvm/Support/DataTypes.h"
@@ -96,5 +97,6 @@ public:
 }; // class Cpu0MCCodeEmitter
 } // namespace llvm.
 
-#endif
+#endif // #if CH >= CH5_1
 
+#endif

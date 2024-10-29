@@ -24,6 +24,8 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormattedStream.h"
 
+#if CH >= CH5_1
+
 using namespace llvm;
 
 Cpu0TargetStreamer::Cpu0TargetStreamer(MCStreamer &S)
@@ -34,3 +36,4 @@ Cpu0TargetAsmStreamer::Cpu0TargetAsmStreamer(MCStreamer &S,
                                              formatted_raw_ostream &OS)
     : Cpu0TargetStreamer(S), OS(OS) {}
 
+#endif // #if CH >= CH5_1

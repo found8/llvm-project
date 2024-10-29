@@ -15,6 +15,7 @@
 #define LLVM_LIB_TARGET_CPU0_CPU0REGISTERINFO_H
 
 #include "Cpu0Config.h"
+#if CH >= CH3_1
 
 #include "Cpu0.h"
 #include "llvm/CodeGen/TargetRegisterInfo.h"
@@ -34,9 +35,11 @@ protected:
 public:
   Cpu0RegisterInfo(const Cpu0Subtarget &Subtarget);
 
+#if CH >= CH12_1 //1
   /// Code Generation virtual methods...
   const TargetRegisterClass *getPointerRegClass(const MachineFunction &MF,
                                                 unsigned Kind) const override;
+#endif
 
   const MCPhysReg *getCalleeSavedRegs(const MachineFunction *MF) const override;
 
@@ -63,5 +66,6 @@ public:
 
 } // end namespace llvm
 
-#endif
+#endif // #if CH >= CH3_1
 
+#endif

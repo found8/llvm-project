@@ -17,6 +17,8 @@
 
 #include "Cpu0.h"
 
+#if CH >= CH8_2
+
 #include "MCTargetDesc/Cpu0BaseInfo.h"
 #include "Cpu0MachineFunction.h"
 #include "Cpu0TargetMachine.h"
@@ -427,3 +429,4 @@ bool Cpu0LongBranch::runOnMachineFunction(MachineFunction &F) {
   return true;
 }
 
+#endif //#if CH >= CH8_2

@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "Cpu0MCAsmInfo.h"
+#if CH >= CH3_2
 
 #include "llvm/ADT/Triple.h"
 
@@ -42,3 +43,4 @@ Cpu0MCAsmInfo::Cpu0MCAsmInfo(const Triple &TheTriple) {
   DwarfRegNumForCFI = true;
 }
 
+#endif // #if CH >= CH3_2

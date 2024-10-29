@@ -12,8 +12,11 @@
 //===----------------------------------------------------------------------===//
 
 #include "Cpu0SEFrameLowering.h"
+#if CH >= CH3_1
 
+#if CH >= CH3_5
 #include "Cpu0AnalyzeImmediate.h"
+#endif
 #include "Cpu0MachineFunction.h"
 #include "Cpu0SEInstrInfo.h"
 #include "Cpu0Subtarget.h"
@@ -36,6 +39,7 @@ Cpu0SEFrameLowering::Cpu0SEFrameLowering(const Cpu0Subtarget &STI)
 //@emitPrologue {
 void Cpu0SEFrameLowering::emitPrologue(MachineFunction &MF,
                                        MachineBasicBlock &MBB) const {
+#if CH >= CH3_5 //1
   MachineFrameInfo &MFI    = MF.getFrameInfo();
   Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
 
@@ -48,9 +52,11 @@ void Cpu0SEFrameLowering::emitPrologue(MachineFunction &MF,
   DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
   Cpu0ABIInfo ABI = STI.getABI();
   unsigned SP = Cpu0::SP;
+#if CH >= CH9_3 //1
   unsigned FP = Cpu0::FP;
   unsigned ZERO = Cpu0::ZERO;
   unsigned ADDu = Cpu0::ADDu;
+#endif
   const TargetRegisterClass *RC = &Cpu0::GPROutRegClass;
 
   // First, compute final stack size.
@@ -96,6 +102,7 @@ void Cpu0SEFrameLowering::emitPrologue(MachineFunction &MF,
     }
   }
 
+#if CH >= CH9_3 //1.5
   if (Cpu0FI->callsEhReturn()) {
     // Insert instructions that spill eh data registers.
     for (int I = 0; I < ABI.EhDataRegSize(); ++I) {
@@ -115,7 +122,9 @@ void Cpu0SEFrameLowering::emitPrologue(MachineFunction &MF,
           .addCFIIndex(CFIIndex);
     }
   }
+#endif
 
+#if CH >= CH9_3 //2
   // if framepointer enabled, set it to point to the stack pointer.
   if (hasFP(MF)) {
     if (Cpu0FI->callsEhDwarf()) {
@@ -142,12 +151,15 @@ void Cpu0SEFrameLowering::emitPrologue(MachineFunction &MF,
   }
 #endif
 //@ENABLE_GPRESTORE }
+#endif
+#endif // #if CH >= CH3_5 //1
 }
 //}
 
 //@emitEpilogue {
 void Cpu0SEFrameLowering::emitEpilogue(MachineFunction &MF,
                                  MachineBasicBlock &MBB) const {
+#if CH >= CH3_5 //2
   MachineBasicBlock::iterator MBBI = MBB.getFirstTerminator();
   MachineFrameInfo &MFI            = MF.getFrameInfo();
   Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
@@ -157,9 +169,11 @@ void Cpu0SEFrameLowering::emitEpilogue(MachineFunction &MF,
   const Cpu0RegisterInfo &RegInfo =
       *static_cast<const Cpu0RegisterInfo *>(STI.getRegisterInfo());
 
+
   DebugLoc DL = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
   Cpu0ABIInfo ABI = STI.getABI();
   unsigned SP = Cpu0::SP;
+#if CH >= CH9_3 //3
   unsigned FP = Cpu0::FP;
   unsigned ZERO = Cpu0::ZERO;
   unsigned ADDu = Cpu0::ADDu;
@@ -175,7 +189,9 @@ void Cpu0SEFrameLowering::emitEpilogue(MachineFunction &MF,
     // Insert instruction "move $sp, $fp" at this location.
     BuildMI(MBB, I, DL, TII.get(ADDu), SP).addReg(FP).addReg(ZERO);
   }
+#endif
 
+#if CH >= CH9_3 //4
   if (Cpu0FI->callsEhReturn()) {
     const TargetRegisterClass *RC = &Cpu0::GPROutRegClass;
 
@@ -190,6 +206,7 @@ void Cpu0SEFrameLowering::emitEpilogue(MachineFunction &MF,
                                Cpu0FI->getEhDataRegFI(J), RC, &RegInfo);
     }
   }
+#endif
 
   // Get the number of bytes from FrameInfo
   uint64_t StackSize = MFI.getStackSize();
@@ -199,9 +216,11 @@ void Cpu0SEFrameLowering::emitEpilogue(MachineFunction &MF,
 
   // Adjust stack.
   TII.adjustStackPtr(SP, StackSize, MBB, MBBI);
+#endif // #if CH >= CH3_5 //2
 }
 //}
 
+#if CH >= CH9_1 //1
 bool Cpu0SEFrameLowering::
 spillCalleeSavedRegisters(MachineBasicBlock &MBB,
                           MachineBasicBlock::iterator MI,
@@ -232,7 +251,9 @@ spillCalleeSavedRegisters(MachineBasicBlock &MBB,
 
   return true;
 }
+#endif
 
+#if CH >= CH3_5 //3
 //@hasReservedCallFrame {
 bool
 Cpu0SEFrameLowering::hasReservedCallFrame(const MachineFunction &MF) const {
@@ -246,6 +267,9 @@ Cpu0SEFrameLowering::hasReservedCallFrame(const MachineFunction &MF) const {
     !MFI.hasVarSizedObjects();
 }
 //}
+#endif //#if CH >= CH3_5 //3
+
+#if CH >= CH3_5 //4
 
 /// Mark \p Reg and all registers aliasing it in the bitset.
 static void setAliasRegs(MachineFunction &MF, BitVector &SavedRegs, unsigned Reg) {
@@ -264,6 +288,7 @@ void Cpu0SEFrameLowering::determineCalleeSaves(MachineFunction &MF,
 //@determineCalleeSaves-body
   TargetFrameLowering::determineCalleeSaves(MF, SavedRegs, RS);
   Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
+#if CH >= CH9_3 //5
   unsigned FP = Cpu0::FP;
 
   // Mark $fp as used if function has dedicated frame pointer.
@@ -274,6 +299,7 @@ void Cpu0SEFrameLowering::determineCalleeSaves(MachineFunction &MF,
   // Create spill slots for eh data registers if function calls eh_return.
   if (Cpu0FI->callsEhReturn())
     Cpu0FI->createEhDataRegsFI();
+#endif
 
   if (MF.getFrameInfo().hasCalls())
     setAliasRegs(MF, SavedRegs, Cpu0::LR);
@@ -281,9 +307,11 @@ void Cpu0SEFrameLowering::determineCalleeSaves(MachineFunction &MF,
   return;
 }
 //}
+#endif // #if CH >= CH3_5 //4
 
 const Cpu0FrameLowering *
 llvm::createCpu0SEFrameLowering(const Cpu0Subtarget &ST) {
   return new Cpu0SEFrameLowering(ST);
 }
 
+#endif // #if CH >= CH3_1

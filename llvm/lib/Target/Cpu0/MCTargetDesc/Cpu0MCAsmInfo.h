@@ -15,6 +15,7 @@
 #define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0MCASMINFO_H
 
 #include "Cpu0Config.h"
+#if CH >= CH3_2
 
 #include "llvm/MC/MCAsmInfoELF.h"
 
@@ -29,5 +30,6 @@ namespace llvm {
 
 } // namespace llvm
 
-#endif
+#endif // #if CH >= CH3_2
 
+#endif

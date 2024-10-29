@@ -71,19 +71,24 @@ class Cpu0Inst<dag outs, dag ins, string asmstr, list<dag> pattern,
   field bits<32> SoftFail = 0;
 }
 
+//#if CH >= CH3_4
 // Cpu0 Pseudo Instructions Format
 class Cpu0Pseudo<dag outs, dag ins, string asmstr, list<dag> pattern>:
       Cpu0Inst<outs, ins, asmstr, pattern, IIPseudo, Pseudo> {
   let isCodeGenOnly = 1;
   let isPseudo = 1;
 }
+//#endif
 
+//#if CH >= CH9_1
 // Cpu032 Pseudo Instruction Format
 class PseudoSE<dag outs, dag ins, list<dag> pattern,
                InstrItinClass itin = IIPseudo> :
   Cpu0Pseudo<outs, ins, "", pattern> {
 }
+//#endif
 
+//#if CH >= CH11_1
 // Pseudo-instructions for alternate assembly syntax (never used by codegen).
 // These are aliases that require C++ handling to convert to the target
 // instruction, while InstAliases can be handled directly by tblgen.
@@ -92,6 +97,7 @@ class Cpu0AsmPseudoInst<dag outs, dag ins, string asmstr>:
   let isPseudo = 1;
   let Pattern = [];
 }
+//#endif
 
 //===----------------------------------------------------------------------===//
 // Format A instruction class in Cpu0 : <|opcode|ra|rb|rc|cx|>
@@ -147,4 +153,6 @@ class FJ<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern,
 
   let Inst{23-0} = addr;
 }
+
+
 

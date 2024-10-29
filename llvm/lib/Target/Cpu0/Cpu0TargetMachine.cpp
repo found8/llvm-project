@@ -14,9 +14,13 @@
 #include "Cpu0TargetMachine.h"
 #include "Cpu0.h"
 
+#if CH >= CH3_3 //0.5
 #include "Cpu0SEISelDAGToDAG.h"
+#endif
+#if CH >= CH3_1
 #include "Cpu0Subtarget.h"
 #include "Cpu0TargetObjectFile.h"
+#endif
 #include "llvm/IR/Attributes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/Support/CodeGen.h"
@@ -30,12 +34,16 @@ using namespace llvm;
 #define DEBUG_TYPE "cpu0"
 
 extern "C" void LLVMInitializeCpu0Target() {
+#if CH >= CH3_1
   // Register the target.
   //- Big endian Target Machine
   RegisterTargetMachine<Cpu0ebTargetMachine> X(TheCpu0Target);
   //- Little endian Target Machine
   RegisterTargetMachine<Cpu0elTargetMachine> Y(TheCpu0elTarget);
+#endif
 }
+
+#if CH >= CH3_1
 
 static std::string computeDataLayout(const Triple &TT, StringRef CPU,
                                      const TargetOptions &Options,
@@ -150,12 +158,20 @@ public:
   const Cpu0Subtarget &getCpu0Subtarget() const {
     return *getCpu0TargetMachine().getSubtargetImpl();
   }
+#if CH >= CH12_1 //1
   void addIRPasses() override;
+#endif
+#if CH >= CH3_3 //1
   bool addInstSelector() override;
+#endif
+#if CH >= CH8_2 //1
   void addPreEmitPass() override;
+#endif
+#if CH >= CH9_3 //1
 #ifdef ENABLE_GPRESTORE
   void addPreRegAlloc() override;
 #endif
+#endif //#if CH >= CH9_3 //1
 };
 } // namespace
 
@@ -163,18 +179,23 @@ TargetPassConfig *Cpu0TargetMachine::createPassConfig(PassManagerBase &PM) {
   return new Cpu0PassConfig(*this, PM);
 }
 
+#if CH >= CH12_1 //2
 void Cpu0PassConfig::addIRPasses() {
   TargetPassConfig::addIRPasses();
   addPass(createAtomicExpandPass());
 }
+#endif
 
+#if CH >= CH3_3 //2
 // Install an instruction selector pass using
 // the ISelDag to gen Cpu0 code.
 bool Cpu0PassConfig::addInstSelector() {
   addPass(createCpu0SEISelDag(getCpu0TargetMachine(), getOptLevel()));
   return false;
 }
+#endif
 
+#if CH >= CH9_3 //2
 #ifdef ENABLE_GPRESTORE
 void Cpu0PassConfig::addPreRegAlloc() {
   if (!Cpu0ReserveGP) {
@@ -184,7 +205,9 @@ void Cpu0PassConfig::addPreRegAlloc() {
   return;
 }
 #endif
+#endif //#if CH >= CH9_3 //2
 
+#if CH >= CH8_2 //2
 // Implemented by targets that want to run passes immediately before
 // machine code is emitted. return true if -print-machineinstrs should
 // print out the code after the passes.
@@ -198,4 +221,6 @@ void Cpu0PassConfig::addPreEmitPass() {
   addPass(createCpu0LongBranchPass(TM));
   return;
 }
+#endif
 
+#endif // #if CH >= CH3_1

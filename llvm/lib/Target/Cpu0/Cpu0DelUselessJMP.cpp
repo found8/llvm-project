@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "Cpu0.h"
+#if CH >= CH8_2
 
 #include "Cpu0TargetMachine.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
@@ -95,3 +96,4 @@ FunctionPass *llvm::createCpu0DelJmpPass(Cpu0TargetMachine &tm) {
   return new DelJmp(tm);
 }
 
+#endif

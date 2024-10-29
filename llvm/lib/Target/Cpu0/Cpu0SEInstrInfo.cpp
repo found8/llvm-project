@@ -12,8 +12,11 @@
 //===----------------------------------------------------------------------===//
 
 #include "Cpu0SEInstrInfo.h"
+#if CH >= CH3_1
 
+#if CH >= CH3_2
 #include "InstPrinter/Cpu0InstPrinter.h"
+#endif
 #include "Cpu0MachineFunction.h"
 #include "Cpu0TargetMachine.h"
 #include "llvm/ADT/STLExtras.h"
@@ -33,6 +36,7 @@ const Cpu0RegisterInfo &Cpu0SEInstrInfo::getRegisterInfo() const {
   return RI;
 }
 
+#if CH >= CH4_1
 void Cpu0SEInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
                                   MachineBasicBlock::iterator I,
                                   const DebugLoc &DL, MCRegister DestReg,
@@ -67,7 +71,9 @@ void Cpu0SEInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
   if (SrcReg)
     MIB.addReg(SrcReg, getKillRegState(KillSrc));
 }
+#endif
 
+#if CH >= CH3_5 //1
 void Cpu0SEInstrInfo::
 storeRegToStack(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                 Register SrcReg, bool isKill, int FI,
@@ -98,7 +104,9 @@ loadRegFromStack(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   BuildMI(MBB, I, DL, get(Opc), DestReg).addFrameIndex(FI).addImm(Offset)
     .addMemOperand(MMO);
 }
+#endif //#if CH >= CH3_5 //1
 
+#if CH >= CH3_4 //1
 //@expandPostRAPseudo
 /// Expand Pseudo instructions into real backend instructions
 bool Cpu0SEInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
@@ -111,15 +119,19 @@ bool Cpu0SEInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
   case Cpu0::RetLR:
     expandRetLR(MBB, MI);
     break;
+#if CH >= CH9_3 //1
   case Cpu0::CPU0eh_return32:
     expandEhReturn(MBB, MI);
     break;
+#endif //#if CH >= CH9_3 //1
   }
 
   MBB.erase(MI);
   return true;
 }
+#endif //#if CH >= CH3_4 //1
 
+#if CH >= CH3_5 //2
 /// Adjust SP by Amount bytes.
 void Cpu0SEInstrInfo::adjustStackPtr(unsigned SP, int64_t Amount,
                                      MachineBasicBlock &MBB,
@@ -177,12 +189,16 @@ Cpu0SEInstrInfo::loadImmediate(int64_t Imm, MachineBasicBlock &MBB,
 
   return ATReg;
 }
+#endif //#if CH >= CH3_5 //2
 
+#if CH >= CH3_4 //2
 void Cpu0SEInstrInfo::expandRetLR(MachineBasicBlock &MBB,
                                 MachineBasicBlock::iterator I) const {
   BuildMI(MBB, I, I->getDebugLoc(), get(Cpu0::RET)).addReg(Cpu0::LR);
 }
+#endif //#if CH >= CH3_4 //2
 
+#if CH >= CH8_2 //1
 /// getOppositeBranchOpc - Return the inverse of the specified
 /// opcode, e.g. turning BEQ to BNE.
 unsigned Cpu0SEInstrInfo::getOppositeBranchOpc(unsigned Opc) const {
@@ -192,7 +208,9 @@ unsigned Cpu0SEInstrInfo::getOppositeBranchOpc(unsigned Opc) const {
   case Cpu0::BNE:    return Cpu0::BEQ;
   }
 }
+#endif
 
+#if CH >= CH9_3 //2
 void Cpu0SEInstrInfo::expandEhReturn(MachineBasicBlock &MBB,
                                      MachineBasicBlock::iterator I) const {
   // This pseudo instruction is generated as part of the lowering of
@@ -220,8 +238,10 @@ void Cpu0SEInstrInfo::expandEhReturn(MachineBasicBlock &MBB,
   BuildMI(MBB, I, I->getDebugLoc(), get(ADDU), SP).addReg(SP).addReg(OffsetReg);
   expandRetLR(MBB, I);
 }
+#endif
 
 const Cpu0InstrInfo *llvm::createCpu0SEInstrInfo(const Cpu0Subtarget &STI) {
   return new Cpu0SEInstrInfo(STI);
 }
 
+#endif // #if CH >= CH3_1

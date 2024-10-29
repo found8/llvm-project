@@ -9,6 +9,8 @@
 
 #include "Cpu0.h"
 
+#if CH >= CH5_1
+
 #include "Cpu0MCExpr.h"
 #include "llvm/BinaryFormat/ELF.h"
 #include "llvm/MC/MCAsmInfo.h"
@@ -142,3 +144,4 @@ bool Cpu0MCExpr::isGpOff(Cpu0ExprKind &Kind) const {
   return false;
 }
 
+#endif

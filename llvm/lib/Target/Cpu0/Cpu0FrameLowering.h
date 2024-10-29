@@ -14,6 +14,7 @@
 #define LLVM_LIB_TARGET_CPU0_CPU0FRAMELOWERING_H
 
 #include "Cpu0Config.h"
+#if CH >= CH3_1
 
 #include "Cpu0.h"
 #include "llvm/CodeGen/TargetFrameLowering.h"
@@ -35,16 +36,20 @@ public:
 
   bool hasFP(const MachineFunction &MF) const override;
 
+#if CH >= CH9_2
   MachineBasicBlock::iterator
   eliminateCallFramePseudoInstr(MachineFunction &MF,
                                   MachineBasicBlock &MBB,
                                   MachineBasicBlock::iterator I) const override;
+#endif
 };
 
 /// Create Cpu0FrameLowering objects.
 const Cpu0FrameLowering *createCpu0SEFrameLowering(const Cpu0Subtarget &ST);
 
 } // End llvm namespace
+
+#endif // #if CH >= CH3_1
 
 #endif
 

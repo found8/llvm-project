@@ -15,8 +15,11 @@
 #define LLVM_LIB_TARGET_CPU0_MCTARGETDESC_CPU0BASEINFO_H
 
 #include "Cpu0Config.h"
+#if CH >= CH3_2
 
+#if CH >= CH5_1
 #include "Cpu0FixupKinds.h"
+#endif
 #include "Cpu0MCTargetDesc.h"
 #include "llvm/MC/MCExpr.h"
 #include "llvm/Support/DataTypes.h"
@@ -35,9 +38,11 @@ namespace Cpu0II {
 
     MO_NO_FLAG,
 
+#if CH >= CH6_1
     /// MO_GOT - Represents the offset into the global offset table at which
     /// the address the relocation entry symbol resides during execution.
     MO_GOT,
+#endif
 
     /// MO_GOT_CALL - Represents the offset into the global offset table at
     /// which the address of a call site relocation entry symbol resides
@@ -54,6 +59,7 @@ namespace Cpu0II {
     MO_ABS_HI,
     MO_ABS_LO,
 
+#if CH >= CH12_1
     /// MO_TLSGD - Represents the offset into the global offset table at which
     // the module ID and TSL block offset reside during execution (General
     // Dynamic TLS).
@@ -74,6 +80,7 @@ namespace Cpu0II {
     // the thread pointer (Local Exec TLS).
     MO_TP_HI,
     MO_TP_LO,
+#endif
 
     /// MO_GOT_HI16/LO16 - Relocations used for large GOTs.
     MO_GOT_HI16,
@@ -106,5 +113,6 @@ namespace Cpu0II {
 
 }
 
-#endif
+#endif // #if CH >= CH3_2
 
+#endif

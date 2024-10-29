@@ -23,14 +23,21 @@ namespace llvm {
   class Cpu0TargetMachine;
   class FunctionPass;
 
+#if CH >= CH9_3
 #ifdef ENABLE_GPRESTORE
   FunctionPass *createCpu0EmitGPRestorePass(Cpu0TargetMachine &TM);
 #endif
+#endif //#if CH >= CH9_3
+#if CH >= CH8_2 //1
   FunctionPass *createCpu0DelaySlotFillerPass(Cpu0TargetMachine &TM);
+#endif
+#if CH >= CH8_2 //2
   FunctionPass *createCpu0DelJmpPass(Cpu0TargetMachine &TM);
+#endif
+#if CH >= CH8_2 //3
   FunctionPass *createCpu0LongBranchPass(Cpu0TargetMachine &TM);
+#endif
 
 } // end namespace llvm;
 
 #endif
-

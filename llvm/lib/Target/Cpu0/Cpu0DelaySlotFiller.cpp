@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "Cpu0.h"
+#if CH >= CH8_2
 
 #include "Cpu0InstrInfo.h"
 #include "Cpu0TargetMachine.h"
@@ -95,3 +96,4 @@ FunctionPass *llvm::createCpu0DelaySlotFillerPass(Cpu0TargetMachine &tm) {
   return new Filler(tm);
 }
 
+#endif

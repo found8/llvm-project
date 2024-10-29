@@ -12,8 +12,11 @@
 //===----------------------------------------------------------------------===//
 
 #include "Cpu0FrameLowering.h"
+#if CH >= CH3_1
 
+#if CH >= CH3_5 //1
 #include "Cpu0AnalyzeImmediate.h"
+#endif
 #include "Cpu0InstrInfo.h"
 #include "Cpu0MachineFunction.h"
 #include "Cpu0Subtarget.h"
@@ -100,10 +103,12 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &MF) const {
       TRI->needsStackRealignment(MF);
 }
 
+#if CH >= CH9_2
 // Eliminate ADJCALLSTACKDOWN, ADJCALLSTACKUP pseudo instructions
 MachineBasicBlock::iterator Cpu0FrameLowering::
 eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
                               MachineBasicBlock::iterator I) const {
+#if CH >= CH9_3 // dynamic alloc
   unsigned SP = Cpu0::SP;
 
   if (!hasReservedCallFrame(MF)) {
@@ -113,7 +118,10 @@ eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
 
     STI.getInstrInfo()->adjustStackPtr(SP, Amount, MBB, I);
   }
+#endif // dynamic alloc
 
   return MBB.erase(I);
 }
+#endif // #if CH >= CH9_2
 
+#endif // #if CH >= CH3_1

@@ -15,6 +15,7 @@
 #define LLVM_LIB_TARGET_CPU0_INSTPRINTER_CPU0INSTPRINTER_H
 
 #include "Cpu0Config.h"
+#if CH >= CH3_2
 
 #include "llvm/MC/MCInstPrinter.h"
 
@@ -59,5 +60,6 @@ private:
 };
 } // end namespace llvm
 
-#endif
+#endif // #if CH >= CH3_2
 
+#endif

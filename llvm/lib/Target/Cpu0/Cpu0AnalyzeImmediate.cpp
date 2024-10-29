@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 #include "Cpu0AnalyzeImmediate.h"
 #include "Cpu0.h"
+#if CH >= CH3_5
 
 #include "llvm/Support/MathExtras.h"
 
@@ -146,3 +147,4 @@ const Cpu0AnalyzeImmediate::InstSeq
   return Insts;
 }
 
+#endif

@@ -10,6 +10,7 @@
 #define CPU0_ANALYZE_IMMEDIATE_H
 
 #include "Cpu0Config.h"
+#if CH >= CH3_5
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/DataTypes.h"
@@ -62,5 +63,6 @@ namespace llvm {
   };
 }
 
-#endif
+#endif // #if CH >= CH3_5
 
+#endif
