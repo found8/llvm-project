@@ -12,7 +12,7 @@ if [[ $1 == "rebuild" ]]; then
       -DCMAKE_BUILD_TYPE=Debug \
       -DCMAKE_C_COMPILER=clang \
       -DCMAKE_CXX_COMPILER=clang++ \
-      -DLLVM_TARGETS_TO_BUILD="Mips" \
+      -DLLVM_TARGETS_TO_BUILD="Mips;Cpu0" \
       -DLLVM_ENABLE_PROJECTS="clang" \
       -DLLVM_OPTIMIZED_TABLEGEN=On \
       -DBUILD_SHARED_LIBS=ON \
