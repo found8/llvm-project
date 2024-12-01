@@ -55,12 +55,12 @@ RISCVNTargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
     RetOps.push_back(Glue);
   }
 
-  return DAG.getNode(RISCVNISD::RET, DL, MVT::Other, RetOps);
+  return DAG.getNode(RISCVNISD::RET_GLUE, DL, MVT::Other, RetOps);
 }
 
 const char *RISCVNTargetLowering::getTargetNodeName(unsigned Opcode) const {
   switch ((RISCVNISD::NodeType)Opcode) {
-  case RISCVNISD::RET:
+  case RISCVNISD::RET_GLUE:
     return "RISCVNISD::RET";
   default:
     return nullptr;

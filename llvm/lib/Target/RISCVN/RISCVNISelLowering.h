@@ -6,7 +6,7 @@
 namespace llvm {
 class RISCVNSubtarget;
 namespace RISCVNISD {
-enum NodeType : unsigned { FIRST_NUMBER = ISD::BUILTIN_OP_END, RET };
+enum NodeType : unsigned { FIRST_NUMBER = ISD::BUILTIN_OP_END, RET_GLUE };
 }
 
 class RISCVNTargetLowering : public TargetLowering {
