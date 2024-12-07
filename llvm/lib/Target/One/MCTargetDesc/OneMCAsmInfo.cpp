@@ -6,4 +6,4 @@
 
 using namespace llvm;
 
-OneMCAsmInfo::OneMCAsmInfo(const Triple &TargetTriple) { CommentString = "//"; }
+OneMCAsmInfo::OneMCAsmInfo(const Triple &TargetTriple) { CommentString = "#"; }

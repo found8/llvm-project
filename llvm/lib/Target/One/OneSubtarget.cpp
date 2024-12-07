@@ -22,7 +22,7 @@ OneSubtarget::initializeSubtargetDependencies(StringRef CPU, StringRef FS,
                                               const TargetMachine &TM)
 
 {
-  if (CPU.empty() || CPU == "generic") {
+  if (CPU.empty()) {
     CPU = "one";
   }
   ParseSubtargetFeatures(CPU, /*TuneCPU*/ CPU, FS);

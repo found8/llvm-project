@@ -25,3 +25,7 @@ let isBarrier = 1, isReturn = 1, isTerminator = 1 in {
               PseudoInstExpansion<(JALR X0, X1, 0)>;
 }
 
+def : InstAlias<"ret", (JALR X0, X1, 0)>;
+def : InstAlias<"li $rd, $imm",  (ADDI GPR:$rd, X0, i32imm:$imm)>;
+
+
