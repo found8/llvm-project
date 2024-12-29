@@ -15,10 +15,12 @@ using namespace llvm;
 class OneDAGToDAGISel : public SelectionDAGISel {
 public:
   OneDAGToDAGISel() = delete;
-  explicit OneDAGToDAGISel(OneTargetMachine &TM)
-      : SelectionDAGISel(TM), Subtarget(nullptr) {}
+  explicit OneDAGToDAGISel(OneTargetMachine &TM, CodeGenOptLevel OL)
+      : SelectionDAGISel(TM, OL), Subtarget(nullptr) {}
 
   bool runOnMachineFunction(MachineFunction &MF) override;
+
+  bool SelectAddrFI(SDNode *Parent, SDValue AddrFI, SDValue &BASE, SDValue &Offset);
 
 private:
   const OneSubtarget *Subtarget;
@@ -48,11 +50,21 @@ void OneDAGToDAGISel::Select(SDNode *Node) {
   SelectCode(Node);
 }
 
+bool OneDAGToDAGISel::SelectAddrFI(SDNode *Parent, SDValue AddrFI, SDValue &Base, SDValue &Offset) {
+  /// FrameIndex -> TargetFrameIndex
+  if (FrameIndexSDNode *FIN = dyn_cast<FrameIndexSDNode>(AddrFI)) {
+    Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), AddrFI.getValueType());
+    Offset = CurDAG->getTargetConstant(0, SDLoc(AddrFI), AddrFI.getValueType());
+    return true;
+  }
+  return false;
+}
+
 class OneDAGToDAGISelLegacy : public SelectionDAGISelLegacy {
 public:
   static char ID;
   explicit OneDAGToDAGISelLegacy(OneTargetMachine &TM)
-      : SelectionDAGISelLegacy(ID, std::make_unique<OneDAGToDAGISel>(TM)) {}
+      : SelectionDAGISelLegacy(ID, std::make_unique<OneDAGToDAGISel>(TM, TM.getOptLevel())) {}
 };
 
 char OneDAGToDAGISelLegacy::ID;

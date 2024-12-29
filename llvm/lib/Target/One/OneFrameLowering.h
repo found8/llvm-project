@@ -13,8 +13,8 @@ class OneFrameLowering : public TargetFrameLowering {
 
 public:
   explicit OneFrameLowering(const OneSubtarget &STI)
-      : TargetFrameLowering(TargetFrameLowering::StackGrowsDown, Align(4), 0,
-                            Align(4)),
+      : TargetFrameLowering(TargetFrameLowering::StackGrowsDown, Align(16), 0,
+                            Align(16)),
         STI(STI) {}
   void emitPrologue(MachineFunction &MF, MachineBasicBlock &MBB) const override;
 
@@ -22,6 +22,9 @@ public:
 
 protected:
   bool hasFPImpl(const MachineFunction &MF) const override;
+
+private:
+  uint64_t computeStateSize(MachineFunction &MF) const;
 };
 } // namespace llvm
 

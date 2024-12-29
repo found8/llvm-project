@@ -14,8 +14,8 @@ using namespace llvm;
 
 OneSubtarget::OneSubtarget(const Triple &TT, StringRef CPU, StringRef FS,
                            const TargetMachine &TM)
-    : OneGenSubtargetInfo(TT, CPU, CPU, FS), FrameLowering(*this),
-      TLI(TM, *this) {}
+    : OneGenSubtargetInfo(TT, CPU, CPU, FS), RegInfo(*this),
+      FrameLowering(*this), TLI(TM, *this) {}
 
 OneSubtarget &
 OneSubtarget::initializeSubtargetDependencies(StringRef CPU, StringRef FS,

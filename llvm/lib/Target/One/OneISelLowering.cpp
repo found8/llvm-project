@@ -61,3 +61,12 @@ OneTargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
 
   return DAG.getNode(OneISD::RET_GLUE, DL, MVT::Other, RetOps);
 }
+
+const char *OneTargetLowering::getTargetNodeName(unsigned Opcode) const {
+  switch (Opcode) {
+  case OneISD::RET_GLUE:
+    return "OneISD::RET_GLUE";
+  default:
+      return nullptr;
+  }
+}

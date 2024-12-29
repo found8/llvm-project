@@ -4,33 +4,63 @@
 
 #include "OneRegisterInfo.h"
 #include "MCTargetDesc/OneMCTargetDesc.h"
+#include "One.h"
 #include "OneSubtarget.h"
+
+#include "llvm/CodeGen/MachineFrameInfo.h"
 
 using namespace llvm;
 
 #define GET_REGINFO_TARGET_DESC
 #include "OneGenRegisterInfo.inc"
 
-OneRegisterInfo::OneRegisterInfo() : OneGenRegisterInfo(One::X1) {}
+#define DEBUG_TYPE "one register info"
+
+OneRegisterInfo::OneRegisterInfo(const OneSubtarget &STI)
+    : OneGenRegisterInfo(One::RA), STI(STI) {}
 
 const MCPhysReg *
 OneRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
-  static const MCPhysReg CalleeSavedRegs[] = {One::X2, 0};
-  return CalleeSavedRegs;
+  return CC_CSR_SaveList;
 }
 
 BitVector OneRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   BitVector Reserved(getNumRegs());
-  Reserved.set(One::X0);
+  Reserved.set(One::ZERO);
+  Reserved.set(One::RA);
+  Reserved.set(One::SP);
   return Reserved;
 }
 
 bool OneRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
                                           int SPAdj, unsigned FIOperandNum,
                                           RegScavenger *RS) const {
-  return false;
+  MachineInstr &MI = *II;
+  LLVM_DEBUG(errs() << MI);
+
+  /// MI (Reg, FrameIndex, IMM)
+
+  uint I = 0;
+  while (!MI.getOperand(I).isFI()) {
+    ++I;
+    assert(I < MI.getNumOperands());
+  }
+
+  const int FI = MI.getOperand(I).getIndex();
+
+  /// 根据 index -> 函数栈帧内部的偏移量
+  const MachineFunction &MF = *MI.getParent()->getParent();
+  const MachineFrameInfo &MFI = MF.getFrameInfo();
+  int64_t Offset = MFI.getObjectOffset(FI);
+  uint64_t STACKSIZE = ROUND_UP(MFI.getStackSize(), STI.getFrameLowering()->getStackAlignment());
+  Offset += static_cast<int64_t>(STACKSIZE);
+
+  MI.getOperand(I).ChangeToRegister(One::SP, false);
+  MI.getOperand(I + 1).ChangeToImmediate(Offset);
+  // MI.getOperand(I + 1).setImm(Offset);
+  return true;
 }
 
 Register OneRegisterInfo::getFrameRegister(const MachineFunction &MF) const {
-  return One::X2;
+  return One::SP;
 }

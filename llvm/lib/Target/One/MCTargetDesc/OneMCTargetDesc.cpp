@@ -42,7 +42,7 @@ MCAsmInfo *createOneMCAsmInfo(const MCRegisterInfo &MRI, const Triple &TT,
 
 MCRegisterInfo *createOneMCRegisterInfo(const Triple &TT) {
   MCRegisterInfo *X = new MCRegisterInfo();
-  InitOneMCRegisterInfo(X, One::X1);
+  InitOneMCRegisterInfo(X, One::RA);
   return X;
 }
 

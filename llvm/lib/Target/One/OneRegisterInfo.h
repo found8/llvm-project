@@ -9,9 +9,11 @@
 #include "OneGenRegisterInfo.inc"
 
 namespace llvm {
+class OneSubtarget;
 class OneRegisterInfo : public OneGenRegisterInfo {
+  const OneSubtarget &STI;
 public:
-  OneRegisterInfo();
+  OneRegisterInfo(const OneSubtarget &STI);
 
   const MCPhysReg *getCalleeSavedRegs(const MachineFunction *MF) const override;
 
