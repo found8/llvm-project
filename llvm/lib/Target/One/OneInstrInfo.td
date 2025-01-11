@@ -31,16 +31,22 @@ def memPat : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex], [SDNPWantPare
 
 
 // load 和 store
-def LOAD : OneInst<(outs GPR: $ra), (ins mem: $addr), "lw \t$ra, $addr", []>;
+def LOADFI : OneInst<(outs GPR: $ra), (ins mem: $addr), "lw \t$ra, $addr", [(set GPR:$ra, (load memPat:$addr))]>;
+def LOAD : OneInst<(outs GPR: $ra), (ins GPR: $rb), "lw \t$ra, 0($rb)", [(set GPR:$ra, (load GPR:$rb))]>;
 /// 从SDNode -> load Instruction  Pattern Match
-def : Pat<(load memPat:$addr), (LOAD memPat: $addr)>;
+/// def : Pat<(load memPat:$addr), (LOADFI memPat: $addr)>;
 
-def STORE : OneInst<(outs), (ins GPR: $ra, mem: $addr), "sw \t$ra, $addr", []>;
-def : Pat<(store GPR:$ra, memPat:$addr), (STORE GPR:$ra, memPat: $addr)>;
+def STOREFI : OneInst<(outs), (ins GPR: $ra, mem: $addr), "sw \t$ra, $addr", [(store GPR:$ra, memPat:$addr)]>;
+def STORE : OneInst<(outs), (ins GPR: $ra, GPR: $rb), "sw \t$ra, 0($rb)", [(store GPR:$ra, GPR:$rb)]>;
+/// def : Pat<(store GPR:$ra, memPat:$addr), (STOREFI GPR:$ra, memPat: $addr)>;
 
 def ADDI : I<(outs GPR:$rd),
                 (ins GPR:$rs1, imm12: $imm12),
                 "addi $rd, $rs1, $imm12", [(set GPR:$rd, (add GPR: $rs1, imm12: $imm12))]>;
+
+def ADD : I<(outs GPR:$rd),
+                (ins GPR:$rs1, GPR: $rs2),
+                "add $rd, $rs1, $rs2", [(set GPR:$rd, (add GPR: $rs1, GPR: $rs2))]>;
 
 def : Pat<(i32 (imm12:$imm12)), (ADDI ZERO, imm12:$imm12)>;
 

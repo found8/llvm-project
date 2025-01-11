@@ -6,6 +6,7 @@
 #include "MCTargetDesc/OneMCTargetDesc.h"
 #include "OneSubtarget.h"
 #include "llvm/CodeGen/CallingConvLower.h"
+#include "llvm/CodeGen/MachineFrameInfo.h"
 
 #include <deque>
 
@@ -48,16 +49,33 @@ SDValue OneTargetLowering::LowerCall(CallLoweringInfo &CLI,
 
   /// 寄存器的编号，实参
   SmallVector<std::pair<unsigned, SDValue>> RegsPairs;
+  SDValue StackPtr;
 
   for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
     CCValAssign &VA = ArgLocs[i];
-    assert(VA.isRegLoc());
-    RegsPairs.push_back(std::make_pair(VA.getLocReg(), OutVals[i]));
+    if (VA.isRegLoc()) {
+      RegsPairs.push_back(std::make_pair(VA.getLocReg(), OutVals[i]));
+    } else {
+      // store
+      assert(VA.isMemLoc());
+      if (!StackPtr.getNode()) {
+        StackPtr = DAG.getCopyFromReg(Chain, DL, One::SP,
+                                      getPointerTy(DAG.getDataLayout()));
+      }
+      unsigned LocMemOffset = VA.getLocMemOffset();
+      SDValue PtrOff = DAG.getIntPtrConstant(LocMemOffset, DL);
+      PtrOff = DAG.getNode(ISD::ADD, DL, getPointerTy(DAG.getDataLayout()),
+                           StackPtr, PtrOff);
+      /// store val -> reg + offset
+      Chain = DAG.getStore(Chain, DL, OutVals[i], PtrOff,
+                           MachinePointerInfo::getStack(MF, LocMemOffset));
+    }
   }
 
   /// 处理第三步
   GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Callee);
-  Callee = DAG.getTargetGlobalAddress(N->getGlobal(), DL, getPointerTy(DAG.getDataLayout()));
+  Callee = DAG.getTargetGlobalAddress(N->getGlobal(), DL,
+                                      getPointerTy(DAG.getDataLayout()));
 
   SmallVector<SDValue, 8> Ops(1, Chain);
   Ops.push_back(Callee);
@@ -71,7 +89,8 @@ SDValue OneTargetLowering::LowerCall(CallLoweringInfo &CLI,
   }
 
   const TargetRegisterInfo *TRI = Subtarget.getRegisterInfo();
-  const uint32_t *Mask = TRI->getCallPreservedMask(DAG.getMachineFunction(), CallConv);
+  const uint32_t *Mask =
+      TRI->getCallPreservedMask(DAG.getMachineFunction(), CallConv);
   Ops.push_back(DAG.getRegisterMask(Mask));
   if (Glue.getNode()) {
     Ops.push_back(Glue);
@@ -84,7 +103,8 @@ SDValue OneTargetLowering::LowerCall(CallLoweringInfo &CLI,
     /// 处理第四步
     SDValue Glue = Chain.getValue(1);
     SmallVector<CCValAssign, 2> RVLos;
-    CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), RVLos, *DAG.getContext());
+    CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), RVLos,
+                   *DAG.getContext());
     CCInfo.AnalyzeCallResult(Ins, RetCC_One);
 
     for (unsigned i = 0, e = RVLos.size(); i != e; ++i) {
@@ -112,8 +132,8 @@ SDValue OneTargetLowering::LowerFormalArguments(
   ///
   /// ir type, MVT, EVT
   /// ir type: i1 ~i128, f32, f64, struct, array
-  /// MVT : machine value type, 寄存器的类型，架构所具体支持的类型，一般都是整型 i8~i32
-  /// EVT : 扩展的value type，包含了架构所不支持的类型，比如 i3, i99
+  /// MVT : machine value type, 寄存器的类型，架构所具体支持的类型，一般都是整型
+  /// i8~i32 EVT : 扩展的value type，包含了架构所不支持的类型，比如 i3, i99
 
   MachineFunction &MF = DAG.getMachineFunction();
   MachineFrameInfo &MFI = MF.getFrameInfo();
@@ -125,11 +145,22 @@ SDValue OneTargetLowering::LowerFormalArguments(
   SDValue ArgValue;
   for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
     CCValAssign &VA = ArgLocs[i];
-    assert(VA.isRegLoc());
-    MVT RegVT = VA.getLocVT();
-    Register Reg = MF.addLiveIn(VA.getLocReg(), &One::GPRRegClass);
-    ArgValue = DAG.getCopyFromReg(Chain, DL, Reg, RegVT);
-    InVals.push_back(ArgValue);
+    if (VA.isRegLoc()) {
+      MVT RegVT = VA.getLocVT();
+      Register Reg = MF.addLiveIn(VA.getLocReg(), &One::GPRRegClass);
+      ArgValue = DAG.getCopyFromReg(Chain, DL, Reg, RegVT);
+      InVals.push_back(ArgValue);
+    } else {
+      assert(VA.isMemLoc());
+      MVT ValVT = VA.getValVT();
+      int Offset = VA.getLocMemOffset();
+      int FI = MFI.CreateFixedObject(ValVT.getSizeInBits() / 8, Offset, true);
+      SDValue FIN = DAG.getFrameIndex(FI, getPointerTy(DAG.getDataLayout()));
+      SDValue Val = DAG.getLoad(
+          ValVT, DL, Chain, FIN,
+          MachinePointerInfo::getFixedStack(DAG.getMachineFunction(), FI));
+      InVals.push_back(Val);
+    }
   }
 
   return Chain;
