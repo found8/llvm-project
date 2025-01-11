@@ -7,6 +7,8 @@
 #include "OneSubtarget.h"
 #include "llvm/CodeGen/CallingConvLower.h"
 
+#include <deque>
+
 using namespace llvm;
 
 #include "OneGenCallingConv.inc"
@@ -19,6 +21,64 @@ OneTargetLowering::OneTargetLowering(const TargetMachine &TM,
   addRegisterClass(MVT::i32, &One::GPRRegClass);
 
   computeRegisterProperties(STI.getRegisterInfo());
+}
+
+SDValue OneTargetLowering::LowerCall(CallLoweringInfo &CLI,
+                                     SmallVectorImpl<SDValue> &InVals) const {
+  SelectionDAG &DAG = CLI.DAG;
+  SDLoc &DL = CLI.DL;
+  SmallVectorImpl<ISD::OutputArg> &Outs = CLI.Outs;
+  SmallVectorImpl<SDValue> &OutVals = CLI.OutVals;
+  SmallVectorImpl<ISD::InputArg> &Ins = CLI.Ins;
+  SDValue Chain = CLI.Chain;
+  SDValue Callee = CLI.Callee;
+  CallingConv::ID CallConv = CLI.CallConv;
+  bool IsVarArg = CLI.IsVarArg;
+
+  /// 1. 处理实参，根据调用约定（通过寄存器，内存栈来传递参数）
+  /// 2. 根据参数的寄存器的个数，来生成相应的copyFromReg
+  /// 3. 生成Call节点
+  /// 4. 处理Call的返回值，根据Ins，填充InVals
+
+  /// 处理第三步
+  GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Callee);
+  Callee = DAG.getTargetGlobalAddress(N->getGlobal(), DL, getPointerTy(DAG.getDataLayout()));
+
+  SmallVector<SDValue, 8> Ops(1, Chain);
+  Ops.push_back(Callee);
+
+  SDValue Glue;
+
+  const TargetRegisterInfo *TRI = Subtarget.getRegisterInfo();
+  const uint32_t *Mask = TRI->getCallPreservedMask(DAG.getMachineFunction(), CallConv);
+  Ops.push_back(DAG.getRegisterMask(Mask));
+  if (Glue.getNode()) {
+    Ops.push_back(Glue);
+  }
+
+  SDVTList NodeTys = DAG.getVTList(MVT::Other, MVT::Glue);
+  Chain = DAG.getNode(OneISD::Call, DL, NodeTys, Ops);
+
+  {
+    /// 处理第四步
+    SDValue Glue = Chain.getValue(1);
+    SmallVector<CCValAssign, 2> RVLos;
+    CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(), RVLos, *DAG.getContext());
+    CCInfo.AnalyzeCallResult(Ins, RetCC_One);
+
+    for (unsigned i = 0, e = RVLos.size(); i != e; ++i) {
+      CCValAssign &VA = RVLos[i];
+      EVT vt = RVLos[i].getLocVT();
+      assert(VA.isRegLoc());
+      unsigned RVReg = VA.getLocReg();
+      SDValue Val = DAG.getCopyFromReg(Chain, DL, RVReg, vt, Glue);
+      Chain = Val.getValue(1);
+      Glue = Val.getValue(2);
+      InVals.push_back(Val);
+    }
+  }
+
+  return Chain;
 }
 
 SDValue OneTargetLowering::LowerFormalArguments(
@@ -66,6 +126,8 @@ const char *OneTargetLowering::getTargetNodeName(unsigned Opcode) const {
   switch (Opcode) {
   case OneISD::RET_GLUE:
     return "OneISD::RET_GLUE";
+  case OneISD::Call:
+    return "OneISD::Call";
   default:
       return nullptr;
   }

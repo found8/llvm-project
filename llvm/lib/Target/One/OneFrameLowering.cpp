@@ -59,6 +59,13 @@ void OneFrameLowering::emitEpilogue(MachineFunction &MF,
       .setMIFlag(MachineInstr::FrameDestroy);
 }
 
+void OneFrameLowering::determineCalleeSaves(MachineFunction &MF, BitVector &SavedRegs, RegScavenger *RS) const {
+  TargetFrameLowering::determineCalleeSaves(MF, SavedRegs, RS);
+  if (MF.getFrameInfo().hasCalls()) {
+    SavedRegs.set(One::RA);
+  }
+}
+
 bool OneFrameLowering::hasFPImpl(const MachineFunction &MF) const {
   return false;
 }

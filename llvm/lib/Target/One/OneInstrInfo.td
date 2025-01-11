@@ -60,6 +60,22 @@ let isBarrier = 1, isReturn = 1, isTerminator = 1 in {
               PseudoInstExpansion<(JALR ZERO, RA, 0)>;
 }
 
+/// 1. Call 的 SDNode定义
+/// 2. SDNode pattern Instruction(Call的instruction)
+
+def OneSDT_Call : SDTypeProfile<0, -1, [SDTCisVT<0, iPTR>]>;
+def one_call  : SDNode<"OneISD::Call", OneSDT_Call,
+                            [SDNPHasChain, SDNPOutGlue,
+                             SDNPOptInGlue, SDNPVariadic]>;
+
+// def tglobaladdr : SDNode<"ISD::TargetGlobalAddress",  SDTPtrLeaf, [],
+//                            "GlobalAddressSDNode">;
+
+def call_symbol : Operand<iPTR>;
+def CALL : I<(outs), (ins call_symbol:$rs1), "call\t $rs1", [(one_call tglobaladdr:$rs1)]> {
+    let isCall = 1;
+}
+
 def : InstAlias<"ret", (JALR ZERO, RA, 0)>;
 def : InstAlias<"li $rd, $imm",  (ADDI GPR:$rd, ZERO, imm12:$imm)>;
 

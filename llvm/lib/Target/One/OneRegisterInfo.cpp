@@ -21,7 +21,12 @@ OneRegisterInfo::OneRegisterInfo(const OneSubtarget &STI)
 
 const MCPhysReg *
 OneRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
-  return CC_CSR_SaveList;
+  return CSR_SaveList;
+}
+
+const uint32_t *OneRegisterInfo::getCallPreservedMask(const MachineFunction &MF,
+                                     CallingConv::ID) const {
+  return CSR_RegMask;
 }
 
 BitVector OneRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
@@ -52,7 +57,8 @@ bool OneRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
   const MachineFunction &MF = *MI.getParent()->getParent();
   const MachineFrameInfo &MFI = MF.getFrameInfo();
   int64_t Offset = MFI.getObjectOffset(FI);
-  uint64_t STACKSIZE = ROUND_UP(MFI.getStackSize(), STI.getFrameLowering()->getStackAlignment());
+  uint64_t STACKSIZE =
+      ROUND_UP(MFI.getStackSize(), STI.getFrameLowering()->getStackAlignment());
   Offset += static_cast<int64_t>(STACKSIZE);
 
   MI.getOperand(I).ChangeToRegister(One::SP, false);
