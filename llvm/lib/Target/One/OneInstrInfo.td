@@ -40,13 +40,47 @@ def STOREFI : OneInst<(outs), (ins GPR: $ra, mem: $addr), "sw \t$ra, $addr", [(s
 def STORE : OneInst<(outs), (ins GPR: $ra, GPR: $rb), "sw \t$ra, 0($rb)", [(store GPR:$ra, GPR:$rb)]>;
 /// def : Pat<(store GPR:$ra, memPat:$addr), (STOREFI GPR:$ra, memPat: $addr)>;
 
-def ADDI : I<(outs GPR:$rd),
-                (ins GPR:$rs1, imm12: $imm12),
-                "addi $rd, $rs1, $imm12", [(set GPR:$rd, (add GPR: $rs1, imm12: $imm12))]>;
+class ArithLogicI<string inst, SDNode node> : I<
+    (outs GPR:$rd),
+    (ins GPR:$rs1, imm12: $imm12),
+    !strconcat(inst, "\t$rd, $rs1, $imm12"),
+    [(set GPR:$rd, (node GPR:$rs1, imm12: $imm12))]
+    >;
 
-def ADD : I<(outs GPR:$rd),
-                (ins GPR:$rs1, GPR: $rs2),
-                "add $rd, $rs1, $rs2", [(set GPR:$rd, (add GPR: $rs1, GPR: $rs2))]>;
+def ADDI : ArithLogicI<"addi", add>;
+def ANDI : ArithLogicI<"andi", and>;
+def ORI  : ArithLogicI<"ori", or>;
+def XORI  : ArithLogicI<"xori", xor>;
+def SLLI  : ArithLogicI<"slli", shl>;
+def SRLI  : ArithLogicI<"srli", srl>;
+def SRAI  : ArithLogicI<"srai", sra>;
+
+//def ADDI : I<(outs GPR:$rd),
+//                (ins GPR:$rs1, imm12: $imm12),
+//                "addi $rd, $rs1, $imm12", [(set GPR:$rd, (add GPR: $rs1, imm12: $imm12))]>;
+
+
+class ArithLogicR<string inst, SDNode node> : I<
+    (outs GPR:$rd),
+    (ins GPR:$rs1, GPR:$rs2),
+    !strconcat(inst, "\t$rd, $rs1, $rs2"),
+    [(set GPR:$rd, (node GPR:$rs1, GPR:$rs2))]
+    >;
+def ADD : ArithLogicR<"add", add>;
+def SUB : ArithLogicR<"sub", sub>;
+def MUL : ArithLogicR<"mul", mul>;
+def DIV : ArithLogicR<"div", sdiv>;
+def REM : ArithLogicR<"rem", srem>;
+def AND : ArithLogicR<"and", and>;
+def OR : ArithLogicR<"or", or>;
+def XOR : ArithLogicR<"xor", xor>;
+def SLL : ArithLogicR<"sll", shl>;
+def SRL : ArithLogicR<"srl", srl>;
+def SRA : ArithLogicR<"sra", sra>;
+
+//def ADD : I<(outs GPR:$rd),
+//                (ins GPR:$rs1, GPR: $rs2),
+//                "add $rd, $rs1, $rs2", [(set GPR:$rd, (add GPR: $rs1, GPR: $rs2))]>;
 
 def : Pat<(i32 (imm12:$imm12)), (ADDI ZERO, imm12:$imm12)>;
 

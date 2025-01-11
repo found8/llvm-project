@@ -42,7 +42,6 @@ SDValue OneTargetLowering::LowerCall(CallLoweringInfo &CLI,
   /// 4. 处理Call的返回值，根据Ins，填充InVals
   ///
   MachineFunction &MF = DAG.getMachineFunction();
-  MachineFrameInfo &MFI = MF.getFrameInfo();
   SmallVector<CCValAssign, 16> ArgLocs;
   CCState CCInfo(CallConv, IsVarArg, MF, ArgLocs, *DAG.getContext());
   CCInfo.AnalyzeCallOperands(Outs, CC_One);
