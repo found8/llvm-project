@@ -40,7 +40,7 @@ def : Pat<(store GPR:$ra, memPat:$addr), (STORE GPR:$ra, memPat: $addr)>;
 
 def ADDI : I<(outs GPR:$rd),
                 (ins GPR:$rs1, imm12: $imm12),
-                "addi $rd, $rs1, $imm12", []>;
+                "addi $rd, $rs1, $imm12", [(set GPR:$rd, (add GPR: $rs1, imm12: $imm12))]>;
 
 def : Pat<(i32 (imm12:$imm12)), (ADDI ZERO, imm12:$imm12)>;
 

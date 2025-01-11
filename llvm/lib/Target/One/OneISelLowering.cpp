@@ -39,6 +39,21 @@ SDValue OneTargetLowering::LowerCall(CallLoweringInfo &CLI,
   /// 2. 根据参数的寄存器的个数，来生成相应的copyFromReg
   /// 3. 生成Call节点
   /// 4. 处理Call的返回值，根据Ins，填充InVals
+  ///
+  MachineFunction &MF = DAG.getMachineFunction();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
+  SmallVector<CCValAssign, 16> ArgLocs;
+  CCState CCInfo(CallConv, IsVarArg, MF, ArgLocs, *DAG.getContext());
+  CCInfo.AnalyzeCallOperands(Outs, CC_One);
+
+  /// 寄存器的编号，实参
+  SmallVector<std::pair<unsigned, SDValue>> RegsPairs;
+
+  for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
+    CCValAssign &VA = ArgLocs[i];
+    assert(VA.isRegLoc());
+    RegsPairs.push_back(std::make_pair(VA.getLocReg(), OutVals[i]));
+  }
 
   /// 处理第三步
   GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Callee);
@@ -48,6 +63,12 @@ SDValue OneTargetLowering::LowerCall(CallLoweringInfo &CLI,
   Ops.push_back(Callee);
 
   SDValue Glue;
+  for (int i = 0, e = RegsPairs.size(); i != e; ++i) {
+    auto &[reg, val] = RegsPairs[i];
+    Chain = DAG.getCopyToReg(Chain, DL, reg, val, Glue);
+    Glue = Chain.getValue(1);
+    Ops.push_back(DAG.getRegister(reg, val.getValueType()));
+  }
 
   const TargetRegisterInfo *TRI = Subtarget.getRegisterInfo();
   const uint32_t *Mask = TRI->getCallPreservedMask(DAG.getMachineFunction(), CallConv);
@@ -85,6 +106,32 @@ SDValue OneTargetLowering::LowerFormalArguments(
     SDValue Chain, CallingConv::ID CallConv, bool IsVarArg,
     const SmallVectorImpl<ISD::InputArg> &Ins, const SDLoc &DL,
     SelectionDAG &DAG, SmallVectorImpl<SDValue> &InVals) const {
+
+  /// 1. 分析ins的存储
+  /// 2. 产生节点
+  ///
+  /// ir type, MVT, EVT
+  /// ir type: i1 ~i128, f32, f64, struct, array
+  /// MVT : machine value type, 寄存器的类型，架构所具体支持的类型，一般都是整型 i8~i32
+  /// EVT : 扩展的value type，包含了架构所不支持的类型，比如 i3, i99
+
+  MachineFunction &MF = DAG.getMachineFunction();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
+
+  SmallVector<CCValAssign, 16> ArgLocs;
+  CCState CCInfo(CallConv, IsVarArg, MF, ArgLocs, *DAG.getContext());
+  CCInfo.AnalyzeFormalArguments(Ins, CC_One);
+
+  SDValue ArgValue;
+  for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
+    CCValAssign &VA = ArgLocs[i];
+    assert(VA.isRegLoc());
+    MVT RegVT = VA.getLocVT();
+    Register Reg = MF.addLiveIn(VA.getLocReg(), &One::GPRRegClass);
+    ArgValue = DAG.getCopyFromReg(Chain, DL, Reg, RegVT);
+    InVals.push_back(ArgValue);
+  }
+
   return Chain;
 }
 
