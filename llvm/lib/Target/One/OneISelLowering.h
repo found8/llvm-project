@@ -10,7 +10,7 @@
 namespace llvm {
 class OneSubtarget;
 namespace OneISD {
-enum NodeType : unsigned { FIRST_NUMBER = ISD::BUILTIN_OP_END, RET_GLUE, Call };
+enum NodeType : unsigned { FIRST_NUMBER = ISD::BUILTIN_OP_END, RET_GLUE, Call, HI, LO };
 }
 class OneTargetLowering : public TargetLowering {
   const OneSubtarget &Subtarget;
@@ -33,7 +33,11 @@ public:
                       const SmallVectorImpl<SDValue> &OutVals, const SDLoc &DL,
                       SelectionDAG &DAG) const override;
 
+  SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const override;
+
   const char *getTargetNodeName(unsigned Opcode) const override;
+private:
+  SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
 };
 } // namespace llvm
 

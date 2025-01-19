@@ -10,6 +10,7 @@ def retglue : SDNode<"OneISD::RET_GLUE", SDTNone, [SDNPHasChain, SDNPOptInGlue, 
 // : PatFrag<(ops), frag, pred, xform>;
 
 def imm12 : Operand<i32>, ImmLeaf<i32, [{ return isInt<12>(Imm);}]>;
+def imm20 : Operand<i32>, ImmLeaf<i32, [{ return isInt<20>(Imm);}]>;
 // def imm12Pat : ImmLeaf<i32, [{ return isInt<12>(Imm);}]>;
 // def imm12Pat : PatLeaf<(imm), [{ return isInt<12>(N->getSExtValue());}]>
 
@@ -27,18 +28,18 @@ def mem : Operand<iPTR> {
 
 // SDNPWantParent -> 传递引用frameIndex的节点
 // frameindex -> 传递 FrameIndexSDNode
-def memPat : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex], [SDNPWantParent]>;
+def addrFI : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex], [SDNPWantParent]>;
 
 
 // load 和 store
-def LOADFI : OneInst<(outs GPR: $ra), (ins mem: $addr), "lw \t$ra, $addr", [(set GPR:$ra, (load memPat:$addr))]>;
+def LOADFI : OneInst<(outs GPR: $ra), (ins mem: $addr), "lw \t$ra, $addr", [(set GPR:$ra, (load addrFI:$addr))]>;
 def LOAD : OneInst<(outs GPR: $ra), (ins GPR: $rb), "lw \t$ra, 0($rb)", [(set GPR:$ra, (load GPR:$rb))]>;
 /// 从SDNode -> load Instruction  Pattern Match
-/// def : Pat<(load memPat:$addr), (LOADFI memPat: $addr)>;
+/// def : Pat<(load addrFI:$addr), (LOADFI addrFI: $addr)>;
 
-def STOREFI : OneInst<(outs), (ins GPR: $ra, mem: $addr), "sw \t$ra, $addr", [(store GPR:$ra, memPat:$addr)]>;
+def STOREFI : OneInst<(outs), (ins GPR: $ra, mem: $addr), "sw \t$ra, $addr", [(store GPR:$ra, addrFI:$addr)]>;
 def STORE : OneInst<(outs), (ins GPR: $ra, GPR: $rb), "sw \t$ra, 0($rb)", [(store GPR:$ra, GPR:$rb)]>;
-/// def : Pat<(store GPR:$ra, memPat:$addr), (STOREFI GPR:$ra, memPat: $addr)>;
+/// def : Pat<(store GPR:$ra, addrFI:$addr), (STOREFI GPR:$ra, addrFI: $addr)>;
 
 class ArithLogicI<string inst, SDNode node> : I<
     (outs GPR:$rd),
@@ -115,6 +116,14 @@ def call_symbol : Operand<iPTR>;
 def CALL : I<(outs), (ins call_symbol:$rs1), "call\t $rs1", [(one_call tglobaladdr:$rs1)]> {
     let isCall = 1;
 }
+
+def HI: SDNode<"OneISD::HI", SDTIntUnaryOp>;
+def LO: SDNode<"OneISD::LO", SDTIntUnaryOp>;
+
+def LUI : U<(outs GPR:$rd), (ins imm20: $imm), "lui \t$rd, $imm", []>;
+
+def : Pat<(HI tglobaladdr: $in), (LUI tglobaladdr:$in)>;
+def : Pat<(add GPR: $hi, (LO tglobaladdr: $lo)), (ADDI GPR:$hi, tglobaladdr:$lo)>;
 
 def : InstAlias<"ret", (JALR ZERO, RA, 0)>;
 def : InstAlias<"li $rd, $imm",  (ADDI GPR:$rd, ZERO, imm12:$imm)>;

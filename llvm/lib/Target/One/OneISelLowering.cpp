@@ -3,6 +3,7 @@
 //
 
 #include "OneISelLowering.h"
+#include "MCTargetDesc/OneMCExpr.h"
 #include "MCTargetDesc/OneMCTargetDesc.h"
 #include "OneSubtarget.h"
 #include "llvm/CodeGen/CallingConvLower.h"
@@ -20,6 +21,9 @@ OneTargetLowering::OneTargetLowering(const TargetMachine &TM,
   /// 注册RegiserClass
   /// 还要处理合法化（类型和操作）
   addRegisterClass(MVT::i32, &One::GPRRegClass);
+
+  /// 注册合法化的操作
+  setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
 
   computeRegisterProperties(STI.getRegisterInfo());
 }
@@ -199,12 +203,43 @@ OneTargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
   return DAG.getNode(OneISD::RET_GLUE, DL, MVT::Other, RetOps);
 }
 
+SDValue OneTargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) const {
+  switch (Op.getOpcode()) {
+  case ISD::GlobalAddress:
+    return LowerGlobalAddress(Op, DAG);
+  default:
+    llvm::llvm_unreachable_internal("unknown op");
+  }
+  return SDValue();
+}
+
+/// GlobalAddress -> HI / LO
+SDValue OneTargetLowering::LowerGlobalAddress(SDValue Op,
+                                              SelectionDAG &DAG) const {
+  EVT VT = Op.getValueType();
+  GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Op);
+  SDLoc DL(N);
+  SDValue Hi =
+      DAG.getTargetGlobalAddress(N->getGlobal(), DL, VT, 0, OneMCExpr::HI);
+  SDValue Lo =
+      DAG.getTargetGlobalAddress(N->getGlobal(), DL, VT, 0, OneMCExpr::LO);
+
+  SDValue HiNode = DAG.getNode(OneISD::HI, DL, VT, Hi);
+  SDValue LoNode = DAG.getNode(OneISD::LO, DL, VT, Lo);
+
+  return DAG.getNode(ISD::ADD, DL, VT, HiNode, LoNode);
+}
+
 const char *OneTargetLowering::getTargetNodeName(unsigned Opcode) const {
   switch (Opcode) {
   case OneISD::RET_GLUE:
     return "OneISD::RET_GLUE";
   case OneISD::Call:
     return "OneISD::Call";
+  case OneISD::HI:
+    return "OneISD::HI";
+  case OneISD::LO:
+    return "OneISD::LO";
   default:
       return nullptr;
   }
