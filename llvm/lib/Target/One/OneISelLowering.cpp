@@ -24,6 +24,7 @@ OneTargetLowering::OneTargetLowering(const TargetMachine &TM,
 
   /// 注册合法化的操作
   setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
+  setOperationAction(ISD::BR_CC, MVT::i32, Expand);
 
   computeRegisterProperties(STI.getRegisterInfo());
 }
