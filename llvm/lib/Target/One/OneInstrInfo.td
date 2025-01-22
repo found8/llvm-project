@@ -32,14 +32,28 @@ def addrFI : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex], [SDNPWantPare
 
 
 // load 和 store
-def LOADFI : OneInst<(outs GPR: $ra), (ins mem: $addr), "lw \t$ra, $addr", [(set GPR:$ra, (load addrFI:$addr))]>;
-def LOAD : OneInst<(outs GPR: $ra), (ins GPR: $rb), "lw \t$ra, 0($rb)", [(set GPR:$ra, (load GPR:$rb))]>;
-/// 从SDNode -> load Instruction  Pattern Match
-/// def : Pat<(load addrFI:$addr), (LOADFI addrFI: $addr)>;
+multiclass LOAD<PatFrag op, string asm> {
+    def FI : I<(outs GPR: $ra), (ins mem: $addr), !strconcat(asm, "\t$ra, $addr"), [(set GPR:$ra, (op addrFI:$addr))]>;
+    def R : I<(outs GPR: $ra), (ins GPR: $rb), !strconcat(asm, "\t$ra, 0($rb)"), [(set GPR:$ra, (op GPR:$rb))]>;
+}
+defm LOADW:LOAD<load, "lw">;
 
-def STOREFI : OneInst<(outs), (ins GPR: $ra, mem: $addr), "sw \t$ra, $addr", [(store GPR:$ra, addrFI:$addr)]>;
-def STORE : OneInst<(outs), (ins GPR: $ra, GPR: $rb), "sw \t$ra, 0($rb)", [(store GPR:$ra, GPR:$rb)]>;
-/// def : Pat<(store GPR:$ra, addrFI:$addr), (STOREFI GPR:$ra, addrFI: $addr)>;
+defm LOADH:LOAD<extloadi16, "lh">;
+defm LOADSH:LOAD<sextloadi16, "lh">;
+defm LOADZH:LOAD<zextloadi16, "lh">;
+
+defm LOADB:LOAD<extloadi8, "lb">;
+defm LOADSB:LOAD<sextloadi8, "lb">;
+defm LOADZB:LOAD<zextloadi8, "lb">;
+
+multiclass STORE<PatFrag op, string asm> {
+    def FI : S<(outs), (ins GPR: $ra, mem: $addr), !strconcat(asm, "\t$ra, $addr"), [(op GPR:$ra, addrFI:$addr)]>;
+    def R : S<(outs), (ins GPR: $ra, GPR: $rb), !strconcat(asm, "\t$ra, 0($rb)"), [(op GPR:$ra, GPR:$rb)]>;
+}
+
+defm STOREW: STORE<store, "sw">;
+defm STOREH: STORE<truncstorei16, "sh">;
+defm STOREB: STORE<truncstorei8, "sb">;
 
 class ArithLogicI<string inst, SDNode node> : I<
     (outs GPR:$rd),

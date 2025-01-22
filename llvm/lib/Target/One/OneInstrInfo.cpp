@@ -17,7 +17,7 @@ void OneInstrInfo::storeRegToStackSlot(
     bool isKill, int FrameIndex, const TargetRegisterClass *RC,
     const TargetRegisterInfo *TRI, Register VReg) const {
   DebugLoc DL;
-  BuildMI(MBB, MI, DL, get(One::STOREFI))
+  BuildMI(MBB, MI, DL, get(One::STOREWFI))
       .addReg(SrcReg, getKillRegState(isKill))
       .addFrameIndex(FrameIndex)
       .addImm(0);
@@ -30,7 +30,7 @@ void OneInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
                                         const TargetRegisterInfo *TRI,
                                         Register VReg) const {
   DebugLoc DL;
-  BuildMI(MBB, MI, DL, get(One::LOADFI), DestReg)
+  BuildMI(MBB, MI, DL, get(One::LOADWFI), DestReg)
       .addFrameIndex(FrameIndex)
       .addImm(0);
 }

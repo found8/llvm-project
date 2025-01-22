@@ -36,3 +36,7 @@ class J<dag outs, dag ins, string asmstr, list<dag> pattern>
 class B<dag outs, dag ins, string asmstr, list<dag> pattern>
     : OneInst<outs, ins, asmstr, pattern> {
 }
+
+class S<dag outs, dag ins, string asmstr, list<dag> pattern>
+    : OneInst<outs, ins, asmstr, pattern> {
+}
