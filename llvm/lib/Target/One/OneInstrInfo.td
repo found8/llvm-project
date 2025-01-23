@@ -26,6 +26,13 @@ def mem : Operand<iPTR> {
     let PrintMethod = "printMemOperand";
 }
 
+def ptr : Operand<iPTR> {
+    /// 具体有哪些操作数
+    let MIOperandInfo = (ops GPR, imm12);
+    /// 指明自定义的打印函数 offset(GPR)这种形式
+    let PrintMethod = "printPtrOperand";
+}
+
 // SDNPWantParent -> 传递引用frameIndex的节点
 // frameindex -> 传递 FrameIndexSDNode
 def addrFI : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex], [SDNPWantParent]>;
@@ -165,3 +172,5 @@ def : Pat<(brcond (i32 (setgt GPR:$rs1, GPR:$rs2)), bb:$dst), (BLT GPR:$rs2, GPR
 def : Pat<(brcond (i32 (seteq GPR:$rs1, GPR:$rs2)), bb:$dst), (BEQ GPR:$rs1, GPR:$rs2, brtarget:$dst)>;
 def : Pat<(brcond (i32 (setne GPR:$rs1, GPR:$rs2)), bb:$dst), (BNE GPR:$rs1, GPR:$rs2, brtarget:$dst)>;
 def : Pat<(br bb:$dst), (J brtarget:$dst)>;
+
+def : I<(outs GPR:$rd), (ins ptr:$p), "addi \t$rd, $p", [(set GPR:$rd, addrFI:$p)]>;

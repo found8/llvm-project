@@ -18,6 +18,7 @@ public:
   void printInstruction(const MCInst *MI, uint64_t Address, raw_ostream &O);
   static const char *getRegisterName(MCRegister Reg);
   void printMemOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
+  void printPtrOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
 
   void printRegName(raw_ostream &OS, MCRegister Reg) override;
   void printInst(const MCInst *MI, uint64_t Address, StringRef Annot,
