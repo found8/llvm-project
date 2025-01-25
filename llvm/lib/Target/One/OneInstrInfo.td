@@ -154,7 +154,7 @@ def SLT : R<(outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2), "slt \t$rd, $rs1, $rs2", [
 def : Pat<(setgt GPR:$rs1, GPR:$rs2), (SLT GPR:$rs2, GPR:$rs1)>;
 def : Pat<(setlt GPR:$rs1, GPR:$rs2), (SLT GPR:$rs1, GPR:$rs2)>;
 def : Pat<(seteq GPR:$rs1, GPR:$rs2), (SLT (XOR GPR:$rs1, GPR:$rs2), 1)>;
-def : Pat<(seteq GPR:$rs1, GPR:$rs2), (SLT ZERO, (XOR GPR:$rs1, GPR:$rs2))>;
+def : Pat<(setne GPR:$rs1, GPR:$rs2), (SLT ZERO, (XOR GPR:$rs1, GPR:$rs2))>;
 def : Pat<(setge GPR:$rs1, GPR:$rs2), (XORI (SLT GPR:$rs1, GPR:$rs2), 1)>;
 def : Pat<(setle GPR:$rs1, GPR:$rs2), (XORI (SLT GPR:$rs2, GPR:$rs1), 1)>;
 
@@ -165,12 +165,14 @@ let isTerminator = 1 in {
     def BLT : B<(outs), (ins GPR:$rs1, GPR:$rs2, brtarget: $imm), "blt \t$rs1, $rs2, $imm", []>;
     def BEQ : B<(outs), (ins GPR:$rs1, GPR:$rs2, brtarget: $imm), "beq \t$rs1, $rs2, $imm", []>;
     def BNE : B<(outs), (ins GPR:$rs1, GPR:$rs2, brtarget: $imm), "bne \t$rs1, $rs2, $imm", []>;
+    def BGE : B<(outs), (ins GPR:$rs1, GPR:$rs2, brtarget: $imm), "bge \t$rs1, $rs2, $imm", []>;
 }
 
 def : Pat<(brcond (i32 (setlt GPR:$rs1, GPR:$rs2)), bb:$dst), (BLT GPR:$rs1, GPR:$rs2, brtarget:$dst)>;
 def : Pat<(brcond (i32 (setgt GPR:$rs1, GPR:$rs2)), bb:$dst), (BLT GPR:$rs2, GPR:$rs1, brtarget:$dst)>;
 def : Pat<(brcond (i32 (seteq GPR:$rs1, GPR:$rs2)), bb:$dst), (BEQ GPR:$rs1, GPR:$rs2, brtarget:$dst)>;
 def : Pat<(brcond (i32 (setne GPR:$rs1, GPR:$rs2)), bb:$dst), (BNE GPR:$rs1, GPR:$rs2, brtarget:$dst)>;
+def : Pat<(brcond (i32 (setge GPR:$rs1, GPR:$rs2)), bb:$dst), (BGE GPR:$rs1, GPR:$rs2, brtarget:$dst)>;
 def : Pat<(br bb:$dst), (J brtarget:$dst)>;
 
 def : I<(outs GPR:$rd), (ins ptr:$p), "addi \t$rd, $p", [(set GPR:$rd, addrFI:$p)]>;
