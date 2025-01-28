@@ -42,6 +42,10 @@ bool OneDAGToDAGISel::runOnMachineFunction(MachineFunction &MF) {
 }
 
 void OneDAGToDAGISel::Select(SDNode *Node) {
+  if (Node->isMachineOpcode()) {
+    Node->setNodeId(-1);
+    return;
+  }
   SDLoc DL(Node);
 
   LLVM_DEBUG(dbgs() << "Selecting: "; Node->dump(CurDAG); dbgs() << '\n');

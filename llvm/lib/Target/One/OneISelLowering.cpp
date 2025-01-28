@@ -78,8 +78,15 @@ SDValue OneTargetLowering::LowerCall(CallLoweringInfo &CLI,
 
   /// 处理第三步
   GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Callee);
-  Callee = DAG.getTargetGlobalAddress(N->getGlobal(), DL,
-                                      getPointerTy(DAG.getDataLayout()));
+  MVT Ty = getPointerTy(DAG.getDataLayout());
+  // Callee = DAG.getTargetGlobalAddress(N->getGlobal(), DL,
+  //                                     getPointerTy(DAG.getDataLayout()));
+  /// TargetGlobalAddress -> LUI + ADDI
+  SDValue Hi = DAG.getTargetGlobalAddress(N->getGlobal(), DL, Ty, 0, OneMCExpr::HI);
+  SDValue Lo = DAG.getTargetGlobalAddress(N->getGlobal(), DL, Ty, 0, OneMCExpr::LO);
+
+  SDValue MHiNode = SDValue(DAG.getMachineNode(One::LUI, DL, Ty, Hi), 0);
+  Callee = SDValue(DAG.getMachineNode(One::ADDI, DL, Ty, MHiNode, Lo), 0);
 
   SmallVector<SDValue, 8> Ops(1, Chain);
   Ops.push_back(Callee);
@@ -226,10 +233,8 @@ SDValue OneTargetLowering::LowerGlobalAddress(SDValue Op,
   SDValue Lo =
       DAG.getTargetGlobalAddress(N->getGlobal(), DL, VT, 0, OneMCExpr::LO);
 
-  SDValue HiNode = DAG.getNode(OneISD::HI, DL, VT, Hi);
-  SDValue LoNode = DAG.getNode(OneISD::LO, DL, VT, Lo);
-
-  SDValue BaseAddr = DAG.getNode(ISD::ADD, DL, VT, HiNode, LoNode);;
+  SDValue MHiNode = SDValue(DAG.getMachineNode(One::LUI, DL, VT, Hi), 0);
+  SDValue BaseAddr = SDValue(DAG.getMachineNode(One::ADDI, DL, VT, MHiNode, Lo), 0);
   if (Offset) {
     return DAG.getNode(ISD::ADD, DL, VT, BaseAddr, DAG.getConstant(Offset, DL, VT));
   }
