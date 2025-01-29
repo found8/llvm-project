@@ -38,6 +38,7 @@ public:
   const char *getTargetNodeName(unsigned Opcode) const override;
 private:
   SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
+  SDValue LowerConstant(SDValue Op, SelectionDAG &DAG) const;
 };
 } // namespace llvm
 
