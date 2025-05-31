@@ -3,6 +3,8 @@
 //
 
 #include "OneMCTargetDesc.h"
+#include "OneAsmBackend.h"
+#include "OneMCCodeEmitter.h"
 #include "OneInstPrinter.h"
 #include "OneInstrInfo.h"
 #include "OneMCAsmInfo.h"
@@ -34,6 +36,17 @@ using namespace llvm;
                                                        StringRef CPU,
                                                        StringRef Features);
  */
+static MCCodeEmitter *createOneMCCodeEmitter(const MCInstrInfo &MCII,
+                                           MCContext &Ctx) {
+  return new OneMCCodeEmitter(MCII, Ctx);
+}
+
+static MCAsmBackend *createOneAsmBackend(const Target &T,
+                                         const MCSubtargetInfo &STI,
+                                         const MCRegisterInfo &MRI,
+                                         const MCTargetOptions &Options) {
+  return new OneAsmBackend(T, STI.getTargetTriple());
+}
 
 MCAsmInfo *createOneMCAsmInfo(const MCRegisterInfo &MRI, const Triple &TT,
                               const MCTargetOptions &Options) {
@@ -75,4 +88,7 @@ extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeOneTargetMC() {
                                           createOneMCSubtargetInfo);
   TargetRegistry::RegisterMCInstPrinter(getTheOneTarget(),
                                         createOneMCInstPrinter);
+  TargetRegistry::RegisterMCCodeEmitter(getTheOneTarget(),
+                                        createOneMCCodeEmitter);
+  TargetRegistry::RegisterMCAsmBackend(getTheOneTarget(), createOneAsmBackend);
 }

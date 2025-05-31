@@ -39,66 +39,72 @@ def addrFI : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex], [SDNPWantPare
 
 
 // load 和 store
-multiclass LOAD<PatFrag op, string asm> {
-    def FI : I<(outs GPR: $rd), (ins GPR:$rs1, imm12:$imm12), !strconcat(asm, "\t$rd, $imm12($rs1)"), [(set GPR:$rd, (op (addrFI GPR:$rs1, imm12:$imm12)))]>;
-    def R : I<(outs GPR: $rd), (ins GPR: $rs), !strconcat(asm, "\t$rd, 0($rs)"), [(set GPR:$rd, (op GPR:$rs))]>;
+multiclass LOAD<bits<7> opcode, bits<3> funct3, PatFrag op, string asm> {
+    def FI : I<opcode, funct3, (outs GPR: $rd), (ins GPR:$rs1, imm12:$imm), !strconcat(asm, "\t$rd, $imm($rs1)"), [(set GPR:$rd, (op (addrFI GPR:$rs1, imm12:$imm)))]>;
+    def R : I<opcode, funct3, (outs GPR: $rd), (ins GPR: $rs1), !strconcat(asm, "\t$rd, 0($rs1)"), [(set GPR:$rd, (op GPR:$rs1))]> {
+        let imm = 0;
+    }
 }
-defm LOADW:LOAD<load, "lw">;
+defm LOADW:LOAD<0b0000011, 0b010, load, "lw">;
 
-defm LOADH:LOAD<extloadi16, "lh">;
-defm LOADSH:LOAD<sextloadi16, "lh">;
-defm LOADZH:LOAD<zextloadi16, "lh">;
+defm LOADH:LOAD<0b0000011, 0b001, extloadi16, "lh">;
+defm LOADSH:LOAD<0b0000011, 0b001, sextloadi16, "lh">;
+defm LOADZH:LOAD<0b0000011, 0b001, zextloadi16, "lh">;
 
-defm LOADB:LOAD<extloadi8, "lb">;
-defm LOADSB:LOAD<sextloadi8, "lb">;
-defm LOADZB:LOAD<zextloadi8, "lb">;
+defm LOADB:LOAD<0b0000011, 0b000, extloadi8, "lb">;
+defm LOADSB:LOAD<0b0000011, 0b000, sextloadi8, "lb">;
+defm LOADZB:LOAD<0b0000011, 0b000, zextloadi8, "lb">;
 
-multiclass STORE<PatFrag op, string asm> {
-    def FI : S<(outs), (ins GPR: $rd, GPR:$rs1, imm12:$imm12), !strconcat(asm, "\t$rd, $imm12($rs1)"), [(op GPR:$rd, (addrFI GPR:$rs1, imm12:$imm12))]>;
-    def R : S<(outs), (ins GPR: $rd, GPR: $rs), !strconcat(asm, "\t$rd, 0($rs)"), [(op GPR:$rd, GPR:$rs)]>;
+multiclass STORE<bits<7> opcode, bits<3> funct3, PatFrag op, string asm> {
+    def FI : S<opcode, funct3, (outs), (ins GPR: $rs2, GPR:$rs1, imm12:$imm), !strconcat(asm, "\t$rs2, $imm($rs1)"), [(op GPR:$rs2, (addrFI GPR:$rs1, imm12:$imm))]>;
+    def R : S<opcode, funct3, (outs), (ins GPR: $rs2, GPR: $rs1), !strconcat(asm, "\t$rs2, 0($rs1)"), [(op GPR:$rs2, GPR:$rs1)]> {
+        let imm = 0;
+    }
 }
 
-defm STOREW: STORE<store, "sw">;
-defm STOREH: STORE<truncstorei16, "sh">;
-defm STOREB: STORE<truncstorei8, "sb">;
+defm STOREW: STORE<0b0100011, 0b010, store, "sw">;
+defm STOREH: STORE<0b0100011, 0b001, truncstorei16, "sh">;
+defm STOREB: STORE<0b0100011, 0b000, truncstorei8, "sb">;
 
-class ArithLogicI<string inst, SDNode node> : I<
+class ArithLogicI<bits<7> opcode, bits<3> funct3, string inst, SDNode node> : I<
+    opcode, funct3,
     (outs GPR:$rd),
-    (ins GPR:$rs1, imm12: $imm12),
-    !strconcat(inst, "\t$rd, $rs1, $imm12"),
-    [(set GPR:$rd, (node GPR:$rs1, imm12: $imm12))]
+    (ins GPR:$rs1, imm12: $imm),
+    !strconcat(inst, "\t$rd, $rs1, $imm"),
+    [(set GPR:$rd, (node GPR:$rs1, imm12: $imm))]
     >;
 
-def ADDI : ArithLogicI<"addi", add>;
-def ANDI : ArithLogicI<"andi", and>;
-def ORI  : ArithLogicI<"ori", or>;
-def XORI  : ArithLogicI<"xori", xor>;
-def SLLI  : ArithLogicI<"slli", shl>;
-def SRLI  : ArithLogicI<"srli", srl>;
-def SRAI  : ArithLogicI<"srai", sra>;
+def ADDI : ArithLogicI<0b0010011, 0b000, "addi", add>;
+def ANDI : ArithLogicI<0b0010011, 0b111, "andi", and>;
+def ORI  : ArithLogicI<0b0010011, 0b110, "ori", or>;
+def XORI  : ArithLogicI<0b0010011, 0b100, "xori", xor>;
+def SLLI  : ArithLogicI<0b0010011, 0b001, "slli", shl>;
+def SRLI  : ArithLogicI<0b0010011, 0b101, "srli", srl>;
+def SRAI  : ArithLogicI<0b0010011, 0b101, "srai", sra>;
 
 //def ADDI : I<(outs GPR:$rd),
 //                (ins GPR:$rs1, imm12: $imm12),
 //                "addi $rd, $rs1, $imm12", [(set GPR:$rd, (add GPR: $rs1, imm12: $imm12))]>;
 
 
-class ArithLogicR<string inst, SDNode node> : R<
+class ArithLogicR<bits<7> funct7, bits<3> funct3, string inst, SDNode node> : R<
+    0b0110011, funct7, funct3,
     (outs GPR:$rd),
     (ins GPR:$rs1, GPR:$rs2),
     !strconcat(inst, "\t$rd, $rs1, $rs2"),
     [(set GPR:$rd, (node GPR:$rs1, GPR:$rs2))]
     >;
-def ADD : ArithLogicR<"add", add>;
-def SUB : ArithLogicR<"sub", sub>;
-def MUL : ArithLogicR<"mul", mul>;
-def DIV : ArithLogicR<"div", sdiv>;
-def REM : ArithLogicR<"rem", srem>;
-def AND : ArithLogicR<"and", and>;
-def OR : ArithLogicR<"or", or>;
-def XOR : ArithLogicR<"xor", xor>;
-def SLL : ArithLogicR<"sll", shl>;
-def SRL : ArithLogicR<"srl", srl>;
-def SRA : ArithLogicR<"sra", sra>;
+def ADD : ArithLogicR<0b0000000, 0b000, "add", add>;
+def SUB : ArithLogicR<0b0100000, 0b000, "sub", sub>;
+def MUL : ArithLogicR<0b0000001, 0b000, "mul", mul>;
+def DIV : ArithLogicR<0b0000001, 0b100, "div", sdiv>;
+def REM : ArithLogicR<0b0000001, 0b110, "rem", srem>;
+def AND : ArithLogicR<0b0000000, 0b111, "and", and>;
+def OR  : ArithLogicR<0b0000000, 0b110, "or", or>;
+def XOR : ArithLogicR<0b0000000, 0b100, "xor", xor>;
+def SLL : ArithLogicR<0b0000000, 0b001, "sll", shl>;
+def SRL : ArithLogicR<0b0000000, 0b101, "srl", srl>;
+def SRA : ArithLogicR<0b0100000, 0b101, "sra", sra>;
 
 //def ADD : I<(outs GPR:$rd),
 //                (ins GPR:$rs1, GPR: $rs2),
@@ -108,10 +114,10 @@ def : Pat<(i32 (imm12:$imm12)), (ADDI ZERO, imm12:$imm12)>;
 
 
 let isCall = 1 in {
-  def JALR : I<(outs GPR:$rd),
-              (ins GPR:$rs1, imm12:$imm12),
-              "jalr $rd, $rs1, $imm12",
-              []>;
+    def JALR : I<0b1100111, 0b000, (outs GPR:$rd),
+                (ins GPR:$rs1, imm12:$imm),
+                "jalr $rd, $rs1, $imm",
+                []>;
 }
 
 let isBarrier = 1, isReturn = 1, isTerminator = 1 in {
@@ -142,7 +148,7 @@ def CALL : PseudoInst<(outs), (ins GPR:$rs1), [(one_call GPR:$rs1)]>, PseudoInst
 // def HI: SDNode<"OneISD::HI", SDTIntUnaryOp>;
 // def LO: SDNode<"OneISD::LO", SDTIntUnaryOp>;
 
-def LUI : U<(outs GPR:$rd), (ins imm20: $imm), "lui \t$rd, $imm", []>;
+def LUI : U<0b0110111, (outs GPR:$rd), (ins imm20: $imm), "lui \t$rd, $imm", []>;
 
 // def : Pat<(HI tglobaladdr: $in), (LUI tglobaladdr:$in)>;
 // def : Pat<(add GPR: $hi, (LO tglobaladdr: $lo)), (ADDI GPR:$hi, tglobaladdr:$lo)>;
@@ -150,7 +156,7 @@ def LUI : U<(outs GPR:$rd), (ins imm20: $imm), "lui \t$rd, $imm", []>;
 def : InstAlias<"ret", (JALR ZERO, RA, 0)>;
 def : InstAlias<"li $rd, $imm",  (ADDI GPR:$rd, ZERO, imm12:$imm)>;
 
-def SLT : R<(outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2), "slt \t$rd, $rs1, $rs2", []>;
+def SLT : R<0b0110011, 0b0000000, 0b010, (outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2), "slt \t$rd, $rs1, $rs2", []>;
 
 def : Pat<(setgt GPR:$rs1, GPR:$rs2), (SLT GPR:$rs2, GPR:$rs1)>;
 def : Pat<(setlt GPR:$rs1, GPR:$rs2), (SLT GPR:$rs1, GPR:$rs2)>;
@@ -162,12 +168,20 @@ def : Pat<(setle GPR:$rs1, GPR:$rs2), (XORI (SLT GPR:$rs2, GPR:$rs1), 1)>;
 def brtarget : Operand<OtherVT>;
 
 let isTerminator = 1 in {
-    def J : J<(outs), (ins brtarget:$imm12), "j ${imm12}", []>;
-    def BLT : B<(outs), (ins GPR:$rs1, GPR:$rs2, brtarget: $imm), "blt \t$rs1, $rs2, $imm", []>;
-    def BEQ : B<(outs), (ins GPR:$rs1, GPR:$rs2, brtarget: $imm), "beq \t$rs1, $rs2, $imm", []>;
-    def BNE : B<(outs), (ins GPR:$rs1, GPR:$rs2, brtarget: $imm), "bne \t$rs1, $rs2, $imm", []>;
-    def BGE : B<(outs), (ins GPR:$rs1, GPR:$rs2, brtarget: $imm), "bge \t$rs1, $rs2, $imm", []>;
+    def J : J<0b1101111, (outs), (ins brtarget:$imm20), "jal\tzero ${imm20}", [(br bb:$imm20)]> {
+        let rd = 0;
+    }
+
 }
+
+class BRANCH<bits<3> funct3, string asm> : B<0b1100011, funct3, (outs), (ins GPR:$rs1, GPR:$rs2, brtarget:$imm12),
+    !strconcat(asm, "\t$rs1, $rs2, $imm12"), []>;
+
+
+def BLT : BRANCH<0b100, "blt">;
+def BEQ : BRANCH<0b000, "beq">;
+def BNE : BRANCH<0b001, "bne">;
+def BGE : BRANCH<0b101, "bge">;
 
 def : Pat<(brcond (i32 (setlt GPR:$rs1, GPR:$rs2)), bb:$dst), (BLT GPR:$rs1, GPR:$rs2, brtarget:$dst)>;
 def : Pat<(brcond (i32 (setgt GPR:$rs1, GPR:$rs2)), bb:$dst), (BLT GPR:$rs2, GPR:$rs1, brtarget:$dst)>;

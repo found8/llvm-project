@@ -37,14 +37,22 @@ void OneAsmPrinter::emitInstruction(const MachineInstr *MI) {
 void OneAsmPrinter::lowerToMCInst(const MachineInstr *MI, MCInst &Out) {
   Out.setOpcode(MI->getOpcode());
 
+  unsigned int Opcode = MI->getOpcode();
+  int isBranch = false;
+  if (Opcode == One::BLT || Opcode == One::BEQ || Opcode == One::BNE ||
+      Opcode == One::BGE) {
+    isBranch = true;
+  }
+
   for (const MachineOperand &MO : MI->operands()) {
-    MCOperand MCOp;
-    lowerOperand(MO, MCOp);
-    Out.addOperand(MCOp);
+    MCOperand MCOp = LowerOperand(MO, isBranch);
+    if (MCOp.isValid())
+      Out.addOperand(MCOp);
   }
 }
 
-MCOperand OneAsmPrinter::lowerSymbolOperand(const MachineOperand &MO) const {
+MCOperand OneAsmPrinter::lowerSymbolOperand(const MachineOperand &MO,
+                                            bool isBranch) const {
   // auto *symbol = getSymbol(MO.getGlobal());
   // const auto &expr = MCSymbolRefExpr::create(symbol,
   // MCSymbolRefExpr::VK_None, OutContext); MCOp = MCOperand::createExpr(expr);
@@ -61,11 +69,15 @@ MCOperand OneAsmPrinter::lowerSymbolOperand(const MachineOperand &MO) const {
     break;
   }
   if (MO.getType() == MachineOperand::MO_MachineBasicBlock) {
+    if (!isBranch) {
+      kind = OneMCExpr::JAL;
+    } else {
+      kind = OneMCExpr::Branch;
+    }
     symbol = MO.getMBB()->getSymbol();
   } else if (MO.getType() == MachineOperand::MO_ExternalSymbol) {
     symbol = GetExternalSymbolSymbol(MO.getSymbolName());
-  }
-  else {
+  } else {
     symbol = getSymbol(MO.getGlobal());
   }
   const MCExpr *Expr = MCSymbolRefExpr::create(symbol, OutContext);
@@ -75,20 +87,23 @@ MCOperand OneAsmPrinter::lowerSymbolOperand(const MachineOperand &MO) const {
 
 bool OneAsmPrinter::lowerOperand(const MachineOperand &MO,
                                  MCOperand &MCOp) const {
+  MCOp = LowerOperand(MO, false);
+  return true;
+}
+
+MCOperand OneAsmPrinter::LowerOperand(const MachineOperand &MO,
+                                      bool isBranch) const {
   switch (MO.getType()) {
   case MachineOperand::MO_Register: {
-    MCOp = MCOperand::createReg(MO.getReg());
-    return true;
+    return MCOperand::createReg(MO.getReg());
   }
   case MachineOperand::MO_Immediate: {
-    MCOp = MCOperand::createImm(MO.getImm());
-    return true;
+    return MCOperand::createImm(MO.getImm());
   }
   case MachineOperand::MO_GlobalAddress:
   case MachineOperand::MO_ExternalSymbol:
   case MachineOperand::MO_MachineBasicBlock: {
-    MCOp = lowerSymbolOperand(MO);
-    return true;
+    return lowerSymbolOperand(MO, isBranch);
   }
   case MachineOperand::MO_RegisterMask: {
     /// Ignore
@@ -97,8 +112,7 @@ bool OneAsmPrinter::lowerOperand(const MachineOperand &MO,
   default:
     break;
   }
-  MCOp = MCOperand();
-  return true;
+  return MCOperand();
 }
 
 extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeOneAsmPrinter() {

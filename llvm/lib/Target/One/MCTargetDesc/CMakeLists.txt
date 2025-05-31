@@ -3,6 +3,9 @@ add_llvm_component_library(LLVMOneDesc
         OneMCAsmInfo.cpp
         OneInstPrinter.cpp
         OneMCExpr.cpp
+        OneAsmBackend.cpp
+        OneMCCodeEmitter.cpp
+        OneELFObjectWriter.cpp
 
         LINK_COMPONENTS
         MC

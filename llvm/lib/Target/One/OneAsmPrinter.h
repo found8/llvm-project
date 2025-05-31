@@ -31,7 +31,8 @@ public:
 private:
   bool lowerPseudoInstExpansion(const MachineInstr *MI, MCInst &Inst);
   void lowerToMCInst(const MachineInstr *MI, MCInst &Out);
-  MCOperand lowerSymbolOperand(const MachineOperand &MO) const;
+  MCOperand lowerSymbolOperand(const MachineOperand &MO, bool isBranch) const;
+  MCOperand LowerOperand(const MachineOperand &MO, bool isBranch) const;
 };
 } // namespace llvm
 

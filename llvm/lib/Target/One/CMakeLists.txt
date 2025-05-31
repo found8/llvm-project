@@ -9,6 +9,7 @@ tablegen(LLVM OneGenInstrInfo.inc -gen-instr-info)
 tablegen(LLVM OneGenRegisterInfo.inc -gen-register-info)
 tablegen(LLVM OneGenSubtargetInfo.inc -gen-subtarget)
 tablegen(LLVM OneGenMCPseudoLowering.inc -gen-pseudo-lowering)
+tablegen(LLVM OneGenMCCodeEmitter.inc -gen-emitter)
 
 add_public_tablegen_target(OneCommonTableGen)
 
