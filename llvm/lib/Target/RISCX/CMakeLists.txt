@@ -4,7 +4,12 @@ add_llvm_target(RISCXCodeGen
   RISCXTargetMachine.cpp
 
   LINK_COMPONENTS
+  CodeGen
+  MC
+  RISCXInfo
   Support
+  Target
+  TargetParser
   )
 
 add_subdirectory(MCTargetDesc)
