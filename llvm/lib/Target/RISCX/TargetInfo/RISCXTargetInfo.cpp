@@ -1,5 +1,5 @@
+#include "RISCXTargetInfo.h"
 #include "llvm/MC/TargetRegistry.h"
-#include "TargetInfo/RISCXTargetInfo.h"
 using namespace llvm;
 
 Target &llvm::getTheRISCXTarget() {

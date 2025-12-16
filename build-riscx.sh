@@ -15,10 +15,11 @@ if [[ $1 == "rebuild" ]]; then
       -DLLVM_TARGETS_TO_BUILD="RISCV" \
       -DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD="RISCX" \
       -DLLVM_ENABLE_PROJECTS="clang" \
-      -DLLVM_OPTIMIZED_TABLEGEN=On \
+      -DLLVM_OPTIMIZED_TABLEGEN=ON \
       -DBUILD_SHARED_LIBS=ON \
       -DLLVM_PARALLEL_COMPILE_JOBS=16 \
       -DLLVM_PARALLEL_LINK_JOBS=8
 fi
+cmake --build . --target llc -- -j20
 # cmake --build . -- -j20
-time ninja
+# time ninja
