@@ -13,6 +13,9 @@ add_public_tablegen_target(RISCXCommonTableGen)
 
 add_llvm_target(RISCXCodeGen
   RISCXTargetMachine.cpp
+  RISCXInstrInfo.cpp
+  RISCXRegisterInfo.cpp
+  RISCXSubtarget.cpp
 
   LINK_COMPONENTS
   # AsmPrinter
