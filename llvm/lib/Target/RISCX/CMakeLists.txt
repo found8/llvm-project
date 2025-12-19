@@ -16,14 +16,15 @@ add_llvm_target(RISCXCodeGen
   RISCXInstrInfo.cpp
   RISCXRegisterInfo.cpp
   RISCXSubtarget.cpp
+  RISCXFrameLowering.cpp
 
   LINK_COMPONENTS
   # AsmPrinter
   CodeGen
   # CodeGenTypes
-  # Core
+  Core
   MC
-  # RISCXDesc
+  RISCXDesc
   RISCXInfo
   # SelectionDAG
   Support

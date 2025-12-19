@@ -14,7 +14,7 @@ using namespace llvm;
 
 RISCXSubtarget::RISCXSubtarget(const Triple &TT, StringRef CPU, StringRef FS,
                                const TargetMachine &TM)
-    : RISCXGenSubtargetInfo(TT, CPU, CPU, FS) {
+    : RISCXGenSubtargetInfo(TT, CPU, CPU, FS), FrameLowering(*this) {
   ;
 }
 
@@ -28,3 +28,7 @@ RISCXSubtarget::initializeSubtargetDependencies(const Triple &TT, StringRef CPU,
   ParseSubtargetFeatures(CPU, /*TuneCPU */ CPU, FS);
   return *this;
 }
+
+//const TargetFrameLowering *RISCXSubtarget::getFrameLowering() const {
+//  return TargetSubtargetInfo::getFrameLowering();
+//}

@@ -3,6 +3,7 @@ add_llvm_component_library(LLVMRISCXDesc
   RISCXMCAsmInfo.cpp
 
   LINK_COMPONENTS
+  MC
   RISCXInfo
   Support
   )

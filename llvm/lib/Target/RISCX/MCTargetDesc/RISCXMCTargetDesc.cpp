@@ -4,7 +4,6 @@
 #include "TargetInfo/RISCXTargetInfo.h"
 #include "RISCXMCAsmInfo.h"
 #include "RISCXInstrInfo.h"
-#include "RISCXRegisterInfo.h"
 #include "RISCXSubtarget.h"
 
 using namespace llvm;
@@ -20,13 +19,13 @@ using namespace llvm;
 #include "RISCXGenSubtargetInfo.inc"
 
 MCRegisterInfo *createRISCXMCRegisterInfo(const Triple &TT) {
-  MCRegisterInfo *X = new RISCXRegisterInfo();
+  MCRegisterInfo *X = new MCRegisterInfo();
   InitRISCXMCRegisterInfo(X, RISCX::X1);
   return X;
 }
 
 MCInstrInfo *createRISCXMCInstrInfo() {
-  MCInstrInfo *X = new RISCXInstrInfo();
+  MCInstrInfo *X = new MCInstrInfo();
   InitRISCXMCInstrInfo(X);
   return X;
 }
