@@ -8,6 +8,7 @@ tablegen(LLVM RISCXGenInstrInfo.inc -gen-instr-info)
 tablegen(LLVM RISCXGenMCPseudoLowering.inc -gen-pseudo-lowering)
 tablegen(LLVM RISCXGenRegisterInfo.inc -gen-register-info)
 tablegen(LLVM RISCXGenSubtargetInfo.inc -gen-subtarget)
+tablegen(LLVM RISCVGenSDNodeInfo.inc -gen-sd-node-info)
 
 add_public_tablegen_target(RISCXCommonTableGen)
 
@@ -17,6 +18,7 @@ add_llvm_target(RISCXCodeGen
   RISCXRegisterInfo.cpp
   RISCXSubtarget.cpp
   RISCXFrameLowering.cpp
+  RISCXISelLowering.cpp
 
   LINK_COMPONENTS
   # AsmPrinter
@@ -26,7 +28,7 @@ add_llvm_target(RISCXCodeGen
   MC
   RISCXDesc
   RISCXInfo
-  # SelectionDAG
+  SelectionDAG
   Support
   Target
   TargetParser

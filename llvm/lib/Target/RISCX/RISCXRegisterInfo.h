@@ -24,6 +24,6 @@ public:
 
   Register getFrameRegister(const MachineFunction &MF) const override;
 };
-}
+} // namespace llvm
 
 #endif // LLVM_RISCXREGISTERINFO_H

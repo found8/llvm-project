@@ -2,8 +2,8 @@
 #define LLVM_LIB_TARGET_RISCX_RISCXTARGETMACHINE_H
 // #include "MCTargetDesc/RISCXMCTargetDesc.h"
 #include "RISCXSubtarget.h"
-#include "llvm/Target/TargetMachine.h"
 #include "llvm/CodeGen/CodeGenTargetMachineImpl.h"
+#include "llvm/Target/TargetMachine.h"
 // #include "llvm/IR/DataLayout.h"
 // #include <optional>
 
@@ -11,6 +11,7 @@ namespace llvm {
 class RISCXTargetMachine : public CodeGenTargetMachineImpl {
   std::unique_ptr<TargetLoweringObjectFile> TLOF;
   RISCXSubtarget Subtarget;
+
 public:
   RISCXTargetMachine(const Target &T, const Triple &TT, StringRef CPU,
                      StringRef FS, const TargetOptions &Options,
@@ -29,6 +30,6 @@ public:
     return TLOF.get();
   }
 };
-}
+} // namespace llvm
 
 #endif // LLVM_LIB_TARGET_RISCX_RISCXTARGETMACHINE_H
