@@ -4,7 +4,7 @@ include "RISCXRegisterInfo.td"
 include "RISCXInstrInfo.td"
 include "RISCXCallingConv.td"
 
-def : ProcessorModel<"generic", NoSchedModel, []>; // ?
+def : ProcessorModel<"riscx", NoSchedModel, []>; // ?
 
 def RISCXInstrInfo : InstrInfo;
 

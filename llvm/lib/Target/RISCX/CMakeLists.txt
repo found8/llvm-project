@@ -4,11 +4,12 @@ set(LLVM_TARGET_DEFINITIONS RISCX.td)
 
 tablegen(LLVM RISCXGenAsmWriter.inc -gen-asm-writer)
 tablegen(LLVM RISCXGenCallingConv.inc -gen-callingconv)
+tablegen(LLVM RISCXGenDAGISel.inc -gen-dag-isel)
 tablegen(LLVM RISCXGenInstrInfo.inc -gen-instr-info)
 tablegen(LLVM RISCXGenMCPseudoLowering.inc -gen-pseudo-lowering)
 tablegen(LLVM RISCXGenRegisterInfo.inc -gen-register-info)
 tablegen(LLVM RISCXGenSubtargetInfo.inc -gen-subtarget)
-tablegen(LLVM RISCVGenSDNodeInfo.inc -gen-sd-node-info)
+tablegen(LLVM RISCXGenSDNodeInfo.inc -gen-sd-node-info)
 
 add_public_tablegen_target(RISCXCommonTableGen)
 
@@ -19,6 +20,7 @@ add_llvm_target(RISCXCodeGen
   RISCXSubtarget.cpp
   RISCXFrameLowering.cpp
   RISCXISelLowering.cpp
+  RISCXISelDAGToDAG.cpp
 
   LINK_COMPONENTS
   # AsmPrinter

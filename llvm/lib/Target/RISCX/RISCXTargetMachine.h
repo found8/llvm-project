@@ -26,6 +26,9 @@ public:
   // attributes of each function.
   const RISCXSubtarget *getSubtargetImpl() const { return &Subtarget; }
 
+  // Pass Pipeline Configuration
+  TargetPassConfig *createPassConfig(PassManagerBase &PM) override;
+
   TargetLoweringObjectFile *getObjFileLowering() const override {
     return TLOF.get();
   }

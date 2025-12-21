@@ -1,6 +1,6 @@
 include "RISCXInstrFormats.td"
 
-def retglue : SDNode<"RISCVNISD::RET_GLUE", SDTNone,
+def retglue : SDNode<"RISCXISD::RET_GLUE", SDTNone,
                            [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
 def ADDI : I<OPC_ADDI,

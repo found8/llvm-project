@@ -32,7 +32,7 @@ MCInstrInfo *createRISCXMCInstrInfo() {
 
 MCSubtargetInfo *createRISCXMCSubtargetInfo(const Triple &TT, StringRef CPU,
                                             StringRef FS) {
-  if (CPU.empty() || CPU == "generic") {
+  if (CPU.empty()) {
     CPU = "riscx";
   }
   return createRISCXMCSubtargetInfoImpl(TT, CPU, CPU, FS);

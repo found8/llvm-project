@@ -4,10 +4,16 @@
 #include "llvm/MC/TargetRegistry.h"
 // #include "llvm/ADT/StringRef.h"
 // #include "llvm/Support/Compiler.h"
+#include "llvm/CodeGen/TargetPassConfig.h"
+
+#include "RISCX.h"
+
 using namespace llvm;
 
 extern "C" LLVM_ABI LLVM_EXTERNAL_VISIBILITY void LLVMInitializeRISCXTarget() {
   RegisterTargetMachine<RISCXTargetMachine> X(getTheRISCXTarget());
+  auto *PR = PassRegistry::getPassRegistry();
+  initializeRISCXDAGToDAGISelLegacyPass(*PR);
 }
 
 static StringRef computeDataLayout(const Triple &TT,
@@ -32,4 +38,39 @@ RISCXTargetMachine::RISCXTargetMachine(const Target &T, const Triple &TT,
       TLOF(std::make_unique<TargetLoweringObjectFileELF>()),
       Subtarget(TT, CPU, FS, *this) {
   initAsmInfo();
+}
+
+namespace {
+class RISCXPassConfig : public TargetPassConfig {
+public:
+  RISCXPassConfig(RISCXTargetMachine &TM, PassManagerBase &PM)
+      : TargetPassConfig(TM, PM) {}
+
+  RISCXTargetMachine &getRISCXTargetMachine() const {
+    return getTM<RISCXTargetMachine>();
+  }
+
+  const RISCXSubtarget &getRISCXSubtarget() const {
+    return *getRISCXTargetMachine().getSubtargetImpl();
+  }
+  // void addIRPasses() override;
+  // bool addIRTranslator() override;
+  // bool addLegalizeMachineIR() override;
+  // bool addRegBankSelect() override;
+  // bool addGlobalInstructionSelect() override;
+  bool addInstSelector() override;
+  // void addPreSched2() override;
+  // void addPreEmitPass() override;
+};
+}
+
+TargetPassConfig *RISCXTargetMachine::createPassConfig(PassManagerBase &PM) {
+  return new RISCXPassConfig(*this, PM);
+}
+
+bool RISCXPassConfig::addInstSelector() {
+  // Install an instruction selector.
+  addPass(createRISCXISelDag(getRISCXTargetMachine()));
+  // addPass(createM68kGlobalBaseRegPass());
+  return false;
 }
