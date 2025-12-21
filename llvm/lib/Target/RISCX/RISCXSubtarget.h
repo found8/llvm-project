@@ -9,6 +9,7 @@
 #include "RISCXISelLowering.h"
 #include "RISCXInstrInfo.h"
 #include "RISCXRegisterInfo.h"
+#include "llvm/CodeGen/SelectionDAGTargetInfo.h"
 
 #define GET_SUBTARGETINFO_HEADER
 #include "RISCXGenSubtargetInfo.inc"
@@ -20,6 +21,9 @@ class RISCXSubtarget : public RISCXGenSubtargetInfo {
   RISCXInstrInfo InstrInfo;
   RISCXRegisterInfo RegInfo;
   RISCXTargetLowering TLInfo;
+protected:
+  // SelectionDAGISel related APIs.
+  std::unique_ptr<const SelectionDAGTargetInfo> TSInfo;
 
   /// Initializes using the passed in CPU and feature strings so that we can
   /// use initializer lists for subtarget initialization.
@@ -43,6 +47,7 @@ public:
     return &FrameLowering;
   }
   const RISCXTargetLowering *getTargetLowering() const override { return &TLInfo; }
+  const SelectionDAGTargetInfo *getSelectionDAGInfo() const override;
 };
 } // namespace llvm
 

@@ -5,6 +5,7 @@
 #include "RISCXMCAsmInfo.h"
 #include "RISCXInstrInfo.h"
 #include "RISCXSubtarget.h"
+#include "RISCXInstPrinter.h"
 
 using namespace llvm;
 
@@ -43,10 +44,19 @@ MCAsmInfo *createRISCXMCAsmInfo(const MCRegisterInfo &MRI, const Triple &TT,
   return new RISCXMCAsmInfo(TT);
 }
 
+MCInstPrinter *createRISCXMCInstPrinter(const Triple &T,
+                                                 unsigned SyntaxVariant,
+                                                 const MCAsmInfo &MAI,
+                                                 const MCInstrInfo &MII,
+                                                 const MCRegisterInfo &MRI) {
+  return new RISCXInstPrinter(MAI, MII, MRI);
+}
+
 extern "C" LLVM_ABI LLVM_EXTERNAL_VISIBILITY void
 LLVMInitializeRISCXTargetMC() {
   TargetRegistry::RegisterMCRegInfo(getTheRISCXTarget(), createRISCXMCRegisterInfo);
   TargetRegistry::RegisterMCInstrInfo(getTheRISCXTarget(), createRISCXMCInstrInfo);
   TargetRegistry::RegisterMCSubtargetInfo(getTheRISCXTarget(), createRISCXMCSubtargetInfo);
   TargetRegistry::RegisterMCAsmInfo(getTheRISCXTarget(), createRISCXMCAsmInfo);
+  TargetRegistry::RegisterMCInstPrinter(getTheRISCXTarget(), createRISCXMCInstPrinter);
 }

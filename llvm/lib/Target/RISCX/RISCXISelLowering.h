@@ -9,9 +9,9 @@
 
 namespace llvm {
 class RISCXSubtarget;
-namespace RISCXISD {
-enum NodeType : unsigned { FIRST_NUMBER = ISD::BUILTIN_OP_END, RET_GLUE };
-}
+// namespace RISCXISD {
+// enum NodeType : unsigned { FIRST_NUMBER = ISD::BUILTIN_OP_END, RET_GLUE };
+// }
 
 class RISCXTargetLowering : public TargetLowering {
   const RISCXSubtarget &Subtarget;

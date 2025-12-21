@@ -21,9 +21,11 @@ add_llvm_target(RISCXCodeGen
   RISCXFrameLowering.cpp
   RISCXISelLowering.cpp
   RISCXISelDAGToDAG.cpp
+  RISCXAsmPrinter.cpp
+  RISCXSelectionDAGInfo.cpp
 
   LINK_COMPONENTS
-  # AsmPrinter
+  AsmPrinter
   CodeGen
   # CodeGenTypes
   Core

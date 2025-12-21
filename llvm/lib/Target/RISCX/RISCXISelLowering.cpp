@@ -10,6 +10,8 @@
 using namespace llvm;
 
 #include "RISCXGenCallingConv.inc"
+#define GET_SDNODE_ENUM
+#include "RISCXGenSDNodeInfo.inc"
 
 RISCXTargetLowering::RISCXTargetLowering(const TargetMachine &TM,
                                          const RISCXSubtarget &STI)

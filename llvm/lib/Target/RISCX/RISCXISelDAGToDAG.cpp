@@ -10,6 +10,9 @@
 
 using namespace llvm;
 
+#define GET_SDNODE_ENUM
+#include "RISCXGenSDNodeInfo.inc"
+
 #define DEBUG_TYPE "riscx-isel"
 #define PASS_NAME "RISCX DAG->DAG Pattern Instruction Selection"
 

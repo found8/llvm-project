@@ -7,5 +7,5 @@
 using namespace llvm;
 
 RISCXMCAsmInfo::RISCXMCAsmInfo(const Triple &TT) {
-  CommentString = "//";
+  CommentString = "#";
 }

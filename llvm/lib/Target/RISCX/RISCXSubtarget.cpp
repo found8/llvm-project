@@ -3,6 +3,7 @@
 //
 
 #include "RISCXSubtarget.h"
+#include "RISCXSelectionDAGInfo.h"
 
 using namespace llvm;
 
@@ -16,7 +17,7 @@ RISCXSubtarget::RISCXSubtarget(const Triple &TT, StringRef CPU, StringRef FS,
                                const TargetMachine &TM)
     : RISCXGenSubtargetInfo(TT, CPU, CPU, FS), FrameLowering(*this),
       TLInfo(TM, *this) {
-  ;
+  TSInfo = std::make_unique<RISCXSelectionDAGInfo>();
 }
 
 RISCXSubtarget &
@@ -33,3 +34,7 @@ RISCXSubtarget::initializeSubtargetDependencies(const Triple &TT, StringRef CPU,
 //const TargetFrameLowering *RISCXSubtarget::getFrameLowering() const {
 //  return TargetSubtargetInfo::getFrameLowering();
 //}
+
+const SelectionDAGTargetInfo *RISCXSubtarget::getSelectionDAGInfo() const {
+  return TSInfo.get();
+}
