@@ -21,7 +21,7 @@ using namespace llvm;
 
 MCRegisterInfo *createRISCXMCRegisterInfo(const Triple &TT) {
   MCRegisterInfo *X = new MCRegisterInfo();
-  InitRISCXMCRegisterInfo(X, RISCX::X1);
+  InitRISCXMCRegisterInfo(X, RISCX::RA);
   return X;
 }
 

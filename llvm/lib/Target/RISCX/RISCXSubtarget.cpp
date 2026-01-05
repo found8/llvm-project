@@ -16,7 +16,7 @@ using namespace llvm;
 RISCXSubtarget::RISCXSubtarget(const Triple &TT, StringRef CPU, StringRef FS,
                                const TargetMachine &TM)
     : RISCXGenSubtargetInfo(TT, CPU, CPU, FS), FrameLowering(*this),
-      TLInfo(TM, *this) {
+      RegInfo(*this), TLInfo(TM, *this) {
   TSInfo = std::make_unique<RISCXSelectionDAGInfo>();
 }
 

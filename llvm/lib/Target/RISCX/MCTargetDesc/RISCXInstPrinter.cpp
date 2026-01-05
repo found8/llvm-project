@@ -14,7 +14,7 @@ using namespace llvm;
 #include "RISCXGenAsmWriter.inc"
 
 void RISCXInstPrinter::printRegName(raw_ostream &OS, MCRegister Reg) {
-  OS << getRegisterName(Reg, RISCX::ABIRegAltName);
+  OS << getRegisterName(Reg);
 }
 
 void RISCXInstPrinter::printInst(const MCInst *MI, uint64_t Address,
@@ -54,6 +54,10 @@ void RISCXInstPrinter::printImmediate(const MCInst *MI, unsigned opNum,
     llvm_unreachable("Unknown immediate kind");
 }
 
-const char *RISCXInstPrinter::getRegisterName(MCRegister Reg) {
-  return getRegisterName(Reg, RISCX::NoRegAltName);
+void RISCXInstPrinter::printMemOperand(const MCInst *MI, unsigned int opNum,
+                                       raw_ostream &O) {
+  printOperand(MI, opNum+1, O);
+  O << "(";
+  printOperand(MI, opNum, O);
+  O << ")";
 }

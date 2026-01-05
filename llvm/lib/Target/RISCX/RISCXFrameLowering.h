@@ -15,7 +15,7 @@ class RISCXFrameLowering : public TargetFrameLowering {
 
 public:
   explicit RISCXFrameLowering(const RISCXSubtarget &STI)
-      : TargetFrameLowering(StackGrowsDown, Align(4), 0, Align(4)), STI(STI) {
+      : TargetFrameLowering(StackGrowsDown, Align(16), 0, Align(16)), STI(STI) {
     ;
   }
 
@@ -25,6 +25,8 @@ public:
 
 protected:
   bool hasFPImpl(const MachineFunction &MF) const override;
+private:
+  uint64_t computeStackSize(MachineFunction &MF) const;
 };
 }
 

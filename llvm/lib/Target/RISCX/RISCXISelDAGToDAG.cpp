@@ -21,10 +21,11 @@ class RISCXDAGToDAGISel : public SelectionDAGISel {
 public:
   RISCXDAGToDAGISel() = delete;
 
-  explicit RISCXDAGToDAGISel(RISCXTargetMachine &TM)
-      : SelectionDAGISel(TM), Subtarget(nullptr) {}
+  explicit RISCXDAGToDAGISel(RISCXTargetMachine &TM, CodeGenOptLevel OL)
+      : SelectionDAGISel(TM, OL), Subtarget(nullptr) {}
 
   bool runOnMachineFunction(MachineFunction &MF) override;
+  bool SelectAddrFI(SDNode *Parent, SDValue AddrFI, SDValue &Base, SDValue &Offset);
 
 #include "RISCXGenDAGISel.inc"
 
@@ -50,11 +51,20 @@ void RISCXDAGToDAGISel::Select(SDNode *Node) {
   SelectCode(Node);
 }
 
+bool RISCXDAGToDAGISel::SelectAddrFI(SDNode *Parent, SDValue AddrFI, SDValue &Base, SDValue &Offset) {
+  if (FrameIndexSDNode *FIN = dyn_cast<FrameIndexSDNode>(AddrFI)) {
+    Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), AddrFI.getValueType());
+    Offset = CurDAG->getTargetConstant(0, SDLoc(AddrFI), AddrFI.getValueType());
+    return true;
+  }
+  return false;
+}
+
 class RISCXDAGToDAGISelLegacy : public SelectionDAGISelLegacy {
 public:
   static char ID;
   explicit RISCXDAGToDAGISelLegacy(RISCXTargetMachine &TM)
-      : SelectionDAGISelLegacy(ID, std::make_unique<RISCXDAGToDAGISel>(TM)) {}
+      : SelectionDAGISelLegacy(ID, std::make_unique<RISCXDAGToDAGISel>(TM, TM.getOptLevel())) {}
 };
 
 char RISCXDAGToDAGISelLegacy::ID;

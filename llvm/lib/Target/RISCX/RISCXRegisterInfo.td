@@ -1,25 +1,21 @@
-class RISCXReg<bits<5> Enc, string n, list<string> alt = []> : Register<n> {
-  let HWEncoding{4-0} = Enc;
+class RISCXReg<string n> : Register<n> {
   let Namespace = "RISCX";
-  let AltNames = alt;
 }
 
-def ABIRegAltName : RegAltNameIndex;
-
-let RegAltNameIndices = [ABIRegAltName] in {
-  let isConstant = true in {
-    def X0 : RISCXReg<0, "x0", ["zero"]>;
-  }
-  // 与以下定义方式等价
-  // def X0  : RISCXReg<0, "x0", ["zero"]> {
-  //   let isConstant = true;
-  // }
-  def X1  : RISCXReg<1,  "x1",  ["ra"]>;
-  def X2  : RISCXReg<2,  "x2",  ["sp"]>;
-  def X10 : RISCXReg<10, "x10", ["a0"]>;
-  def X11 : RISCXReg<11, "x11", ["a1"]>;
-}
+def ZERO : RISCXReg<"zero">, DwarfRegNum<[0]>;
+def RA : RISCXReg<"ra">, DwarfRegNum<[1]>;
+def SP : RISCXReg<"sp">, DwarfRegNum<[2]>;
+def T0 : RISCXReg<"t0">, DwarfRegNum<[5]>;
+def T1 : RISCXReg<"t1">, DwarfRegNum<[6]>;
+def T2 : RISCXReg<"t2">, DwarfRegNum<[7]>;
+def S0 : RISCXReg<"s0">, DwarfRegNum<[8]>;
+def S1 : RISCXReg<"s1">, DwarfRegNum<[9]>;
+def A0 : RISCXReg<"a0">, DwarfRegNum<[10]>;
+def A1 : RISCXReg<"a1">, DwarfRegNum<[11]>;
 
 def GPR : RegisterClass<"RISCX", [i32], 32, (add
-  X0, X1, X2, X10, X11
+  ZERO, RA, SP,
+  A0, A1,
+  T0, T1, T2,
+  S0, S1
 )>;

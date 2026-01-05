@@ -9,10 +9,12 @@
 #include "RISCXGenRegisterInfo.inc"
 
 namespace llvm {
+class RISCXSubtarget;
 
 class RISCXRegisterInfo : public RISCXGenRegisterInfo {
+  const RISCXSubtarget &STI;
 public:
-  RISCXRegisterInfo();
+  RISCXRegisterInfo(const RISCXSubtarget &STI);
 
   const MCPhysReg *getCalleeSavedRegs(const MachineFunction *MF) const override;
 
