@@ -17,6 +17,8 @@ public:
   RISCXRegisterInfo(const RISCXSubtarget &STI);
 
   const MCPhysReg *getCalleeSavedRegs(const MachineFunction *MF) const override;
+  const uint32_t *getCallPreservedMask(const MachineFunction &MF,
+                                       CallingConv::ID id) const override;
 
   BitVector getReservedRegs(const MachineFunction &MF) const override;
 

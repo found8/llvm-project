@@ -22,7 +22,13 @@ RISCXRegisterInfo::RISCXRegisterInfo(const RISCXSubtarget &STI)
 
 const MCPhysReg *
 RISCXRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
-  return CC_CSR_SaveList;
+  return CSR_SaveList;
+}
+
+const uint32_t *
+RISCXRegisterInfo::getCallPreservedMask(const MachineFunction &MF,
+                                        CallingConv::ID id) const {
+  return CSR_RegMask;
 }
 
 BitVector RISCXRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
@@ -80,3 +86,4 @@ bool RISCXRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 Register RISCXRegisterInfo::getFrameRegister(const MachineFunction &MF) const {
   return RISCX::SP;
 }
+

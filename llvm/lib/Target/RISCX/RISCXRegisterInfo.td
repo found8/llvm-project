@@ -12,10 +12,11 @@ def S0 : RISCXReg<"s0">, DwarfRegNum<[8]>;
 def S1 : RISCXReg<"s1">, DwarfRegNum<[9]>;
 def A0 : RISCXReg<"a0">, DwarfRegNum<[10]>;
 def A1 : RISCXReg<"a1">, DwarfRegNum<[11]>;
+def A2 : RISCXReg<"a2">, DwarfRegNum<[12]>;
 
 def GPR : RegisterClass<"RISCX", [i32], 32, (add
   ZERO, RA, SP,
-  A0, A1,
+  A0, A1, A2,
   T0, T1, T2,
   S0, S1
 )>;

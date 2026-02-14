@@ -42,17 +42,24 @@ def memPat : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex]> {
   let WantsParent = true;
 }
 
-def LOAD : RISCXInst<(outs GPR: $ra), (ins mem: $addr), "lw \t$ra, $addr", []>;
+def LOADFI : RISCXInst<(outs GPR: $ra), (ins mem: $addr), "lw \t$ra, $addr", [(set GPR:$ra, (load memPat:$addr))]>;
 // from SDNode -> load Instruction Pattern Match
-def : Pat<(load memPat: $addr), (LOAD memPat: $addr)>;
+//def : Pat<(load memPat: $addr), (LOADFI memPat: $addr)>;
+def LOAD : RISCXInst<(outs GPR: $ra), (ins GPR: $rb), "lw \t$ra, 0($rb)", [(set GPR:$ra, (load GPR:$rb))]>;
 
-def STORE : RISCXInst<(outs), (ins GPR: $ra, mem: $addr), "sw \t$ra, $addr", []>;
-def : Pat<(store GPR:$ra, memPat:$addr), (STORE GPR:$ra, memPat:$addr)>;
+def STOREFI : RISCXInst<(outs), (ins GPR: $ra, mem: $addr), "sw \t$ra, $addr", [(store GPR:$ra, memPat:$addr)]>;
+//def : Pat<(store GPR:$ra, memPat:$addr), (STOREFI GPR:$ra, memPat:$addr)>;
+def STORE : RISCXInst<(outs), (ins GPR: $ra, GPR: $rb), "sw \t$ra, 0($rb)", [(store GPR:$ra, GPR:$rb)]>;
 
 def ADDI : I<(outs GPR:$rd),
             (ins GPR:$rs1, imm12:$imm12),
             "addi \t$rd, $rs1, $imm12",
-            []>;
+            [(set GPR:$rd, (add GPR:$rs1, imm12:$imm12))]>;
+
+def ADD : I<(outs GPR:$rd),
+            (ins GPR:$rs1, GPR:$rs2),
+            "add \t$rd, $rs1, $rs2",
+            [(set GPR:$rd, (add GPR:$rs1, GPR:$rs2))]>;
 
 def : Pat<(i32 (imm12:$imm12)), (ADDI ZERO, imm12:$imm12)>;
 
@@ -72,6 +79,17 @@ let isBarrier = 1, isReturn = 1, isTerminator = 1 in {
               [(retglue)], " ">,
               PseudoInstExpansion<(JALR ZERO, RA, 0)>;
 }
+
+def RISCXSDT_Call : SDTypeProfile<0, -1, [SDTCisVT<0, iPTR>]>;
+
+def riscxcall : SDNode<"RISCXISD::CALL", RISCXSDT_Call,
+                            [SDNPHasChain, SDNPOutGlue,
+                             SDNPOptInGlue, SDNPVariadic]>;
+
+def call_symbal : Operand<iPTR>;
+def CALL : I<(outs), (ins call_symbal:$rs1), "call \t$rs1", [(riscxcall tglobaladdr:$rs1)]> {
+  let isCall = 1;
+}                           
 
 def : InstAlias<"ret", (JALR ZERO, RA, 0)>;
 def : InstAlias<"li $rd, $imm", (ADDI GPR:$rd, ZERO, i32imm:$imm)>;

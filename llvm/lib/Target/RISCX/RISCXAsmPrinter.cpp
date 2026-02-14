@@ -50,6 +50,15 @@ void RISCXAsmPrinter::lowerToMCInst(const MachineInstr *MI, MCInst &OutMI) {
     case MachineOperand::MO_Immediate:
       MCOp = MCOperand::createImm(MO.getImm());
       break;
+    case MachineOperand::MO_GlobalAddress: {
+      auto *symbol = getSymbol(MO.getGlobal());
+      const auto &expr = MCSymbolRefExpr::create(symbol, MCSymbolRefExpr::VK_None, OutContext);
+      MCOp = MCOperand::createExpr(expr);
+      break;
+    }
+    case MachineOperand::MO_RegisterMask:
+      // Ignore call clobbers.
+      break;
     default:
       llvm_unreachable("unknow operand type");
     }

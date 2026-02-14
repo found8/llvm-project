@@ -54,3 +54,12 @@ uint64_t RISCXFrameLowering::computeStackSize(MachineFunction &MF) const {
   }
   return STACK_SIZE;
 }
+
+void RISCXFrameLowering::determineCalleeSaves(MachineFunction &MF,
+                                              BitVector &SavedRegs,
+                                              RegScavenger *RS) const {
+  TargetFrameLowering::determineCalleeSaves(MF, SavedRegs, RS);
+  if (MF.getFrameInfo().hasCalls()) {
+    SavedRegs.set(RISCX::RA);
+  }
+}
