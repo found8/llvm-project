@@ -51,15 +51,40 @@ def STOREFI : RISCXInst<(outs), (ins GPR: $ra, mem: $addr), "sw \t$ra, $addr", [
 //def : Pat<(store GPR:$ra, memPat:$addr), (STOREFI GPR:$ra, memPat:$addr)>;
 def STORE : RISCXInst<(outs), (ins GPR: $ra, GPR: $rb), "sw \t$ra, 0($rb)", [(store GPR:$ra, GPR:$rb)]>;
 
-def ADDI : I<(outs GPR:$rd),
-            (ins GPR:$rs1, imm12:$imm12),
-            "addi \t$rd, $rs1, $imm12",
-            [(set GPR:$rd, (add GPR:$rs1, imm12:$imm12))]>;
+class ArithLogicI<string inst, SDNode node> : I<
+  (outs GPR:$rd),
+  (ins GPR:$rs1, imm12:$imm12),
+  !strconcat(inst, "\t$rd, $rs1, $imm12"),
+  [(set GPR:$rd, (node GPR:$rs1, imm12:$imm12))]>;
 
-def ADD : I<(outs GPR:$rd),
-            (ins GPR:$rs1, GPR:$rs2),
-            "add \t$rd, $rs1, $rs2",
-            [(set GPR:$rd, (add GPR:$rs1, GPR:$rs2))]>;
+def ADDI : ArithLogicI<"addi", add>;
+def ORI  : ArithLogicI<"ori", or>;
+
+class ArithLogicR<string inst, SDNode node> : I<
+  (outs GPR:$rd),
+  (ins GPR:$rs1, GPR:$rs2),
+  !strconcat(inst, "\t$rd, $rs1, $rs2"),
+  [(set GPR:$rd, (node GPR:$rs1, GPR:$rs2))]>;
+
+def ADD : ArithLogicR<"add", add>;
+def MUL : ArithLogicR<"mul", mul>;
+def REM : ArithLogicR<"rem", srem>;
+def DIV : ArithLogicR<"div", sdiv>;
+def OR  : ArithLogicR<"or", or>;
+def AND : ArithLogicR<"and", and>;
+def XOR : ArithLogicR<"xor", xor>;
+def SRA : ArithLogicR<"sra", sra>;
+def SLL : ArithLogicR<"sll", shl>;
+
+// def ADDI : I<(outs GPR:$rd),
+//             (ins GPR:$rs1, imm12:$imm12),
+//             "addi \t$rd, $rs1, $imm12",
+//             [(set GPR:$rd, (add GPR:$rs1, imm12:$imm12))]>;
+
+// def ADD : I<(outs GPR:$rd),
+//             (ins GPR:$rs1, GPR:$rs2),
+//             "add \t$rd, $rs1, $rs2",
+//             [(set GPR:$rd, (add GPR:$rs1, GPR:$rs2))]>;
 
 def : Pat<(i32 (imm12:$imm12)), (ADDI ZERO, imm12:$imm12)>;
 
