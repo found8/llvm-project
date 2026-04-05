@@ -5,6 +5,7 @@
 #include "RISCXAsmPrinter.h"
 // #include "llvm/MC/MCInst.h"
 #include "MCTargetDesc/RISCXMCTargetDesc.h"
+#include "MCTargetDesc/RISCXMCExpr.h"
 #include "TargetInfo/RISCXTargetInfo.h"
 #include "llvm/MC/TargetRegistry.h"
 
@@ -51,9 +52,7 @@ void RISCXAsmPrinter::lowerToMCInst(const MachineInstr *MI, MCInst &OutMI) {
       MCOp = MCOperand::createImm(MO.getImm());
       break;
     case MachineOperand::MO_GlobalAddress: {
-      auto *symbol = getSymbol(MO.getGlobal());
-      const auto &expr = MCSymbolRefExpr::create(symbol, MCSymbolRefExpr::VK_None, OutContext);
-      MCOp = MCOperand::createExpr(expr);
+      MCOp = lowerSymbolOperand(MO, getSymbol(MO.getGlobal()));
       break;
     }
     case MachineOperand::MO_RegisterMask:
@@ -64,6 +63,28 @@ void RISCXAsmPrinter::lowerToMCInst(const MachineInstr *MI, MCInst &OutMI) {
     }
     OutMI.addOperand(MCOp);
   }
+}
+
+MCOperand RISCXAsmPrinter::lowerSymbolOperand(const MachineOperand &MO,
+                                              MCSymbol *Sym) {
+  // auto *symbol = getSymbol(MO.getGlobal());
+  // const auto &expr = MCSymbolRefExpr::create(symbol, MCSymbolRefExpr::VK_None, OutContext);
+  // MCOperand MCOp = MCOperand::createExpr(expr);
+  RISCXMCExpr::Kind Kind = RISCXMCExpr::NONE;
+  // const MCSymbol *Symbol = nullptr;
+  switch (MO.getTargetFlags()) {
+  case RISCXMCExpr::HI:
+    Kind = RISCXMCExpr::HI;
+    break;
+  case RISCXMCExpr::LO:
+    Kind = RISCXMCExpr::LO;
+    break;
+  default:
+    break;
+  }
+  const MCSymbol *Symbol = getSymbol(MO.getGlobal());
+  const MCExpr *Expr = MCSymbolRefExpr::create(Symbol, OutContext);
+  return MCOperand::createExpr(new RISCXMCExpr(Kind, Expr));
 }
 
 extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeRISCXAsmPrinter() {

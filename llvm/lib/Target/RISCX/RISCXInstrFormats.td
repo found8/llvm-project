@@ -23,3 +23,7 @@ class PseudoInst<dag outs, dag ins, list<dag> pattern, string asmstr = "">
 class I<dag outs, dag ins, string asmstr, list<dag> pattern>
   : RISCXInst<outs, ins, asmstr, pattern> {
 }
+
+class U<dag outs, dag ins, string asmstr, list<dag> pattern>
+  : RISCXInst<outs, ins, asmstr, pattern> {
+}

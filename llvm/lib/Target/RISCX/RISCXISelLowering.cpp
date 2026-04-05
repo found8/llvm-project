@@ -6,6 +6,7 @@
 #include "RISCXRegisterInfo.h" // for ISCX::GPRRegClass
 #include "RISCXSubtarget.h"
 #include "MCTargetDesc/RISCXMCTargetDesc.h" // for RISCXGenCallingConv.inc
+#include "MCTargetDesc/RISCXMCExpr.h"
 #include "llvm/CodeGen/CallingConvLower.h" // for CCValAssign
 #include "llvm/CodeGen/MachineFrameInfo.h"
 
@@ -19,6 +20,9 @@ RISCXTargetLowering::RISCXTargetLowering(const TargetMachine &TM,
                                          const RISCXSubtarget &STI)
     : TargetLowering(TM), Subtarget(STI) {
   addRegisterClass(MVT::i32, &RISCX::GPRRegClass);
+
+  // 注册合法化操作
+  setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
   computeRegisterProperties(STI.getRegisterInfo());
 }
 
@@ -165,4 +169,31 @@ RISCXTargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
     RetOps.push_back(Glue);
   }
   return DAG.getNode(RISCXISD::RET_GLUE, DL, MVT::Other, RetOps);
+}
+
+SDValue RISCXTargetLowering::LowerOperation(SDValue Op,
+                                            SelectionDAG &DAG) const {
+  switch (Op.getOpcode())
+  {
+  case ISD::GlobalAddress:
+    return lowerGlobalAddress(Op, DAG);
+  default:
+    llvm_unreachable_internal("unimplemented operand");
+  }
+  return SDValue();
+}
+
+// GlobalAddress -> HI / LO
+SDValue RISCXTargetLowering::lowerGlobalAddress(SDValue Op,
+                                                SelectionDAG &DAG) const {
+  EVT VT = Op.getValueType();
+  GlobalAddressSDNode *N = cast<GlobalAddressSDNode>(Op);
+  SDLoc DL(N);
+  SDValue Hi = DAG.getTargetGlobalAddress(N->getGlobal(), DL, VT, 0, RISCXMCExpr::HI);
+  SDValue Lo = DAG.getTargetGlobalAddress(N->getGlobal(), DL, VT, 0, RISCXMCExpr::LO);
+
+  SDValue HiNode = DAG.getNode(RISCXISD::HI, DL, VT, Hi);
+  SDValue LoNode = DAG.getNode(RISCXISD::LO, DL, VT, Lo);
+
+  return DAG.getNode(ISD::ADD, DL, VT, HiNode, LoNode);
 }

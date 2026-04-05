@@ -43,6 +43,16 @@ public:
                       const SmallVectorImpl<ISD::OutputArg> &Outs,
                       const SmallVectorImpl<SDValue> &OutVals, const SDLoc &DL,
                       SelectionDAG &DAG) const override;
+
+  /// This callback is invoked for operations that are unsupported by the
+  /// target, which are registered to use 'custom' lowering, and whose defined
+  /// values are all legal.  If the target has no operations that require custom
+  /// lowering, it need not implement this.  The default implementation of this
+  /// aborts.
+  SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const override;
+
+private:
+  SDValue lowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
 };
 } // namespace llvm
 

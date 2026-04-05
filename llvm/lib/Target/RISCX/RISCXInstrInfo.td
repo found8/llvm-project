@@ -1,8 +1,13 @@
 include "RISCXInstrFormats.td"
 
-def retglue : SDNode<"RISCXISD::RET_GLUE", SDTNone,
+def riscx_retglue : SDNode<"RISCXISD::RET_GLUE", SDTNone,
                            [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
+// Add the Lo 12 bits from an address. Selected to ADDI.
+def riscx_lo : SDNode<"RISCXISD::LO", SDTIntUnaryOp>;
+
+// Get the Hi 20 bits from an address. Selected to LUI.
+def riscx_hi : SDNode<"RISCXISD::HI", SDTIntUnaryOp>;
 
 class PTX_READ_SREG_R32<string regname, Intrinsic intop, list<Predicate> Preds=[]>
   : RISCXInst<(outs GPR:$d), (ins),
@@ -26,6 +31,7 @@ defm INT_PTX_SREG_NTID  : PTX_READ_SREG_R32V4<"ntid">;
 // defm INT_PTX_SREG_NCTAID: PTX_READ_SREG_R32V4<"nctaid">;
 
 def imm12 : Operand<i32>, ImmLeaf<i32, [{ return isInt<12>(Imm); }]>;
+def imm20 : Operand<i32>, ImmLeaf<i32, [{ return isInt<20>(Imm); }]>;
 //def imm12Pat : ImmLeaf<i32, [{ return isInt<12>(Imm); }]>;
 //def imm12Pat : PatLeaf<(imm), [{ return isInt<12>(N->getSExtValue()); }]>;
 
@@ -38,17 +44,17 @@ def mem : Operand<iPTR> {
 }
 
 // SDNPWantParent -> pass frameIndex's ref Node
-def memPat : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex]> {
+def addFI : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex]> {
   let WantsParent = true;
 }
 
-def LOADFI : RISCXInst<(outs GPR: $ra), (ins mem: $addr), "lw \t$ra, $addr", [(set GPR:$ra, (load memPat:$addr))]>;
+def LOADFI : RISCXInst<(outs GPR: $ra), (ins mem: $addr), "lw \t$ra, $addr", [(set GPR:$ra, (load addFI:$addr))]>;
 // from SDNode -> load Instruction Pattern Match
-//def : Pat<(load memPat: $addr), (LOADFI memPat: $addr)>;
+//def : Pat<(load addFI: $addr), (LOADFI addFI: $addr)>;
 def LOAD : RISCXInst<(outs GPR: $ra), (ins GPR: $rb), "lw \t$ra, 0($rb)", [(set GPR:$ra, (load GPR:$rb))]>;
 
-def STOREFI : RISCXInst<(outs), (ins GPR: $ra, mem: $addr), "sw \t$ra, $addr", [(store GPR:$ra, memPat:$addr)]>;
-//def : Pat<(store GPR:$ra, memPat:$addr), (STOREFI GPR:$ra, memPat:$addr)>;
+def STOREFI : RISCXInst<(outs), (ins GPR: $ra, mem: $addr), "sw \t$ra, $addr", [(store GPR:$ra, addFI:$addr)]>;
+//def : Pat<(store GPR:$ra, addFI:$addr), (STOREFI GPR:$ra, addFI:$addr)>;
 def STORE : RISCXInst<(outs), (ins GPR: $ra, GPR: $rb), "sw \t$ra, 0($rb)", [(store GPR:$ra, GPR:$rb)]>;
 
 class ArithLogicI<string inst, SDNode node> : I<
@@ -101,7 +107,7 @@ let isBarrier = 1, isReturn = 1, isTerminator = 1 in {
   def PseudoRET : PseudoInst<
               (outs),
               (ins),
-              [(retglue)], " ">,
+              [(riscx_retglue)], " ">,
               PseudoInstExpansion<(JALR ZERO, RA, 0)>;
 }
 
@@ -114,7 +120,15 @@ def riscxcall : SDNode<"RISCXISD::CALL", RISCXSDT_Call,
 def call_symbal : Operand<iPTR>;
 def CALL : I<(outs), (ins call_symbal:$rs1), "call \t$rs1", [(riscxcall tglobaladdr:$rs1)]> {
   let isCall = 1;
-}                           
+}
+
+// def HI: SDNode<"RISCXISD::HI", SDTIntUnaryOp>;
+// def LO: SDNode<"RISCXISD::LO", SDTIntUnaryOp>;
+
+def LUI : U<(outs GPR:$rd), (ins imm20:$imm20), "lui \t$rd, $imm20", []>;
+
+def : Pat<(riscx_hi tglobaladdr: $in), (LUI tglobaladdr: $in)>;
+def : Pat<(add GPR: $hi, (riscx_lo tglobaladdr: $lo)), (ADDI GPR: $hi, tglobaladdr: $lo)>;
 
 def : InstAlias<"ret", (JALR ZERO, RA, 0)>;
 def : InstAlias<"li $rd, $imm", (ADDI GPR:$rd, ZERO, i32imm:$imm)>;
