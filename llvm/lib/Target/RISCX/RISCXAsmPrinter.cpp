@@ -51,8 +51,10 @@ void RISCXAsmPrinter::lowerToMCInst(const MachineInstr *MI, MCInst &OutMI) {
     case MachineOperand::MO_Immediate:
       MCOp = MCOperand::createImm(MO.getImm());
       break;
-    case MachineOperand::MO_GlobalAddress: {
-      MCOp = lowerSymbolOperand(MO, getSymbol(MO.getGlobal()));
+    case MachineOperand::MO_GlobalAddress:
+    case MachineOperand::MO_MachineBasicBlock:
+    {
+      MCOp = lowerSymbolOperand(MO);
       break;
     }
     case MachineOperand::MO_RegisterMask:
@@ -65,13 +67,12 @@ void RISCXAsmPrinter::lowerToMCInst(const MachineInstr *MI, MCInst &OutMI) {
   }
 }
 
-MCOperand RISCXAsmPrinter::lowerSymbolOperand(const MachineOperand &MO,
-                                              MCSymbol *Sym) {
+MCOperand RISCXAsmPrinter::lowerSymbolOperand(const MachineOperand &MO) {
   // auto *symbol = getSymbol(MO.getGlobal());
   // const auto &expr = MCSymbolRefExpr::create(symbol, MCSymbolRefExpr::VK_None, OutContext);
   // MCOperand MCOp = MCOperand::createExpr(expr);
   RISCXMCExpr::Kind Kind = RISCXMCExpr::NONE;
-  // const MCSymbol *Symbol = nullptr;
+  const MCSymbol *Symbol = nullptr;
   switch (MO.getTargetFlags()) {
   case RISCXMCExpr::HI:
     Kind = RISCXMCExpr::HI;
@@ -82,7 +83,11 @@ MCOperand RISCXAsmPrinter::lowerSymbolOperand(const MachineOperand &MO,
   default:
     break;
   }
-  const MCSymbol *Symbol = getSymbol(MO.getGlobal());
+  if (MO.getType() == MachineOperand::MO_MachineBasicBlock) {
+    Symbol = MO.getMBB()->getSymbol();
+  } else {
+    Symbol = getSymbol(MO.getGlobal());
+  }
   const MCExpr *Expr = MCSymbolRefExpr::create(Symbol, OutContext);
   return MCOperand::createExpr(new RISCXMCExpr(Kind, Expr));
 }

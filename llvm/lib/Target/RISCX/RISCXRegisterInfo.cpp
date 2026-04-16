@@ -77,6 +77,9 @@ bool RISCXRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
   uint64_t STACKSIZE = ROUND_UP(MFI.getStackSize(), STI.getFrameLowering()->getStackAlignment());
   Offset += static_cast<int64_t>(STACKSIZE);
 
+  int64_t Off = MI.getOperand(I + 1).getImm();
+  Offset += Off;
+
   MI.getOperand(I).ChangeToRegister(RISCX::SP, false);
   MI.getOperand(I + 1).ChangeToImmediate(Offset);
 

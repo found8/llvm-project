@@ -20,10 +20,26 @@ class PseudoInst<dag outs, dag ins, list<dag> pattern, string asmstr = "">
   let isCodeGenOnly = 1;
 }
 
+class R<dag outs, dag ins, string asmstr, list<dag> pattern>
+  : RISCXInst<outs, ins, asmstr, pattern> {
+}
+
 class I<dag outs, dag ins, string asmstr, list<dag> pattern>
   : RISCXInst<outs, ins, asmstr, pattern> {
 }
 
 class U<dag outs, dag ins, string asmstr, list<dag> pattern>
+  : RISCXInst<outs, ins, asmstr, pattern> {
+}
+
+class J<dag outs, dag ins, string asmstr, list<dag> pattern>
+  : RISCXInst<outs, ins, asmstr, pattern> {
+}
+
+class B<dag outs, dag ins, string asmstr, list<dag> pattern>
+  : RISCXInst<outs, ins, asmstr, pattern> {
+}
+
+class S<dag outs, dag ins, string asmstr, list<dag> pattern>
   : RISCXInst<outs, ins, asmstr, pattern> {
 }

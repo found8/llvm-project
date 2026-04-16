@@ -20,7 +20,7 @@ void RISCXInstrInfo::storeRegToStackSlot(
     const llvm::TargetRegisterClass *RC, const llvm::TargetRegisterInfo *TRI,
     llvm::Register VReg, MachineInstr::MIFlag Flags) const {
   DebugLoc DL;
-  BuildMI(MBB, MI, DL, get(RISCX::STOREFI))
+  BuildMI(MBB, MI, DL, get(RISCX::STOREWFI))
       .addReg(SrcReg, getKillRegState(isKill))
       .addFrameIndex(FrameIndex)
       .addImm(0);
@@ -32,7 +32,7 @@ void RISCXInstrInfo::loadRegFromStackSlot(
     const llvm::TargetRegisterInfo *TRI, llvm::Register VReg,
     MachineInstr::MIFlag Flags) const {
   DebugLoc DL;
-  BuildMI(MBB, MI, DL, get(RISCX::LOADFI), DestReg)
+  BuildMI(MBB, MI, DL, get(RISCX::LOADWFI), DestReg)
       .addFrameIndex(FrameIndex)
       .addImm(0);
 }

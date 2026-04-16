@@ -23,6 +23,7 @@ RISCXTargetLowering::RISCXTargetLowering(const TargetMachine &TM,
 
   // 注册合法化操作
   setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
+  setOperationAction(ISD::BR_CC, MVT::i32, Expand);
   computeRegisterProperties(STI.getRegisterInfo());
 }
 
@@ -188,6 +189,7 @@ SDValue RISCXTargetLowering::lowerGlobalAddress(SDValue Op,
                                                 SelectionDAG &DAG) const {
   EVT VT = Op.getValueType();
   GlobalAddressSDNode *N = cast<GlobalAddressSDNode>(Op);
+  int64_t Offset = N->getOffset();
   SDLoc DL(N);
   SDValue Hi = DAG.getTargetGlobalAddress(N->getGlobal(), DL, VT, 0, RISCXMCExpr::HI);
   SDValue Lo = DAG.getTargetGlobalAddress(N->getGlobal(), DL, VT, 0, RISCXMCExpr::LO);
@@ -195,5 +197,11 @@ SDValue RISCXTargetLowering::lowerGlobalAddress(SDValue Op,
   SDValue HiNode = DAG.getNode(RISCXISD::HI, DL, VT, Hi);
   SDValue LoNode = DAG.getNode(RISCXISD::LO, DL, VT, Lo);
 
-  return DAG.getNode(ISD::ADD, DL, VT, HiNode, LoNode);
+  SDValue BaseAddr = DAG.getNode(ISD::ADD, DL, VT, HiNode, LoNode);
+  if (Offset) {
+    SDValue OffsetNode = DAG.getConstant(Offset, DL, VT);
+    BaseAddr = DAG.getNode(ISD::ADD, DL, VT, BaseAddr, OffsetNode);
+  }
+
+  return BaseAddr;
 }
