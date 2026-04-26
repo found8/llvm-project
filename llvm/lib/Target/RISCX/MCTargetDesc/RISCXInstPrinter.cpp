@@ -61,3 +61,10 @@ void RISCXInstPrinter::printMemOperand(const MCInst *MI, unsigned int opNum,
   printOperand(MI, opNum, O);
   O << ")";
 }
+
+void llvm::RISCXInstPrinter::printPtrOperand(const MCInst *MI, unsigned opNum,
+                                             raw_ostream &O) {
+  printOperand(MI, opNum, O);
+  O << ", ";
+  printOperand(MI, opNum+1, O);
+}

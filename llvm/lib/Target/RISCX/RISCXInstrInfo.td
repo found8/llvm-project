@@ -43,6 +43,12 @@ def mem : Operand<iPTR> {
   let PrintMethod = "printMemOperand";
 }
 
+def ptr : Operand<iPTR> {
+  let MIOperandInfo = (ops GPR, imm12);
+  // custom print method to print offset(GPR)
+  let PrintMethod = "printPtrOperand";
+}
+
 // SDNPWantParent -> pass frameIndex's ref Node
 def addFI : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex]> {
   let WantsParent = true;
@@ -183,3 +189,5 @@ def : Pat<(brcond (i32 (seteq GPR:$rs1, GPR:$rs2)), bb:$dst), (BEQ GPR:$rs1, GPR
 def : Pat<(brcond (i32 (setne GPR:$rs1, GPR:$rs2)), bb:$dst), (BNE GPR:$rs1, GPR:$rs2, brtarget:$dst)>;
 
 def : Pat<(br bb:$dst), (J brtarget:$dst)>;
+
+def : I<(outs GPR:$rd), (ins ptr:$p), "addi \t$rd, $p", [(set GPR:$rd, addFI:$p)]>;
