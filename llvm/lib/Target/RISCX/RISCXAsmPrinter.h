@@ -27,6 +27,7 @@ public:
   StringRef getPassName() const override { return "RISCX Assembly Printer"; }
   virtual bool runOnMachineFunction(MachineFunction &MF) override;
   void emitInstruction(const MachineInstr *MI) override;
+  bool lowerOperand(const MachineOperand &MO, MCOperand &MCOp);
 
   const RISCXSubtarget *Subtarget;
 

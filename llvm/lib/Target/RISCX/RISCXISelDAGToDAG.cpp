@@ -45,6 +45,10 @@ bool RISCXDAGToDAGISel::runOnMachineFunction(MachineFunction &MF) {
 
 void RISCXDAGToDAGISel::Select(SDNode *Node) {
   // unsigned Opcode = Node->getOpcode();
+  if (Node->isMachineOpcode()) {
+    Node->setNodeId(-1);
+    return; // Already selected.
+  }
   SDLoc DL(Node);
 
   LLVM_DEBUG(dbgs() << "Selecting: "; Node->dump(CurDAG); dbgs() << '\n');

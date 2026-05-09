@@ -9,6 +9,7 @@
 #include "MCTargetDesc/RISCXMCExpr.h"
 #include "llvm/CodeGen/CallingConvLower.h" // for CCValAssign
 #include "llvm/CodeGen/MachineFrameInfo.h"
+#include "llvm/CodeGen/SelectionDAGNodes.h"
 
 using namespace llvm;
 
@@ -65,8 +66,20 @@ SDValue RISCXTargetLowering::LowerCall(CallLoweringInfo &CLI,
     }
   }
 
-  GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Callee);
-  Callee = DAG.getTargetGlobalAddress(N->getGlobal(), DL, getPointerTy(DAG.getDataLayout()));
+  if (GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Callee)) {
+    // Callee = DAG.getTargetGlobalAddress(N->getGlobal(), DL, getPointerTy(DAG.getDataLayout()));
+    MVT Ty = getPointerTy(DAG.getDataLayout());
+    SDValue Hi = DAG.getTargetGlobalAddress(N->getGlobal(), DL, Ty, 0, RISCXMCExpr::HI);
+    SDValue Lo = DAG.getTargetGlobalAddress(N->getGlobal(), DL, Ty, 0, RISCXMCExpr::LO);
+    SDValue MHiNode = SDValue(DAG.getMachineNode(RISCX::LUI, DL, Ty, Hi), 0);
+    Callee = SDValue(DAG.getMachineNode(RISCX::ADDI, DL, Ty, MHiNode, Lo), 0);
+  } else if (ExternalSymbolSDNode *S = dyn_cast<ExternalSymbolSDNode>(Callee)) {
+    MVT Ty = getPointerTy(DAG.getDataLayout());
+    SDValue Hi = DAG.getTargetExternalSymbol(S->getSymbol(), Ty, RISCXMCExpr::HI);
+    SDValue Lo = DAG.getTargetExternalSymbol(S->getSymbol(), Ty, RISCXMCExpr::LO);
+    SDValue MHiNode = SDValue(DAG.getMachineNode(RISCX::LUI, DL, Ty, Hi), 0);
+    Callee = SDValue(DAG.getMachineNode(RISCX::ADDI, DL, Ty, MHiNode, Lo), 0);
+  }
   SmallVector<SDValue, 8> Ops(1, Chain);
   Ops.push_back(Callee);
 
@@ -194,10 +207,12 @@ SDValue RISCXTargetLowering::lowerGlobalAddress(SDValue Op,
   SDValue Hi = DAG.getTargetGlobalAddress(N->getGlobal(), DL, VT, 0, RISCXMCExpr::HI);
   SDValue Lo = DAG.getTargetGlobalAddress(N->getGlobal(), DL, VT, 0, RISCXMCExpr::LO);
 
-  SDValue HiNode = DAG.getNode(RISCXISD::HI, DL, VT, Hi);
-  SDValue LoNode = DAG.getNode(RISCXISD::LO, DL, VT, Lo);
+  // SDValue HiNode = DAG.getNode(RISCXISD::HI, DL, VT, Hi);
+  // SDValue LoNode = DAG.getNode(RISCXISD::LO, DL, VT, Lo);
+  SDValue MHiNode = SDValue(DAG.getMachineNode(RISCX::LUI, DL, VT, Hi), 0);
+  // SDValue MLoNode = SDValue(DAG.getMachineNode(RISCX::ADDI, DL, VT, MHiNode, Lo), 0);
 
-  SDValue BaseAddr = DAG.getNode(ISD::ADD, DL, VT, HiNode, LoNode);
+  SDValue BaseAddr = SDValue(DAG.getMachineNode(RISCX::ADDI, DL, VT, MHiNode, Lo), 0);
   if (Offset) {
     SDValue OffsetNode = DAG.getConstant(Offset, DL, VT);
     BaseAddr = DAG.getNode(ISD::ADD, DL, VT, BaseAddr, OffsetNode);

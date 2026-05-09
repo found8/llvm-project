@@ -92,6 +92,31 @@ MCOperand RISCXAsmPrinter::lowerSymbolOperand(const MachineOperand &MO) {
   return MCOperand::createExpr(new RISCXMCExpr(Kind, Expr));
 }
 
+bool RISCXAsmPrinter::lowerOperand(const MachineOperand &MO, MCOperand &MCOp) {
+  switch (MO.getType())
+  {
+  case MachineOperand::MO_Register:
+    MCOp = MCOperand::createReg(MO.getReg());
+    return true;
+  case MachineOperand::MO_Immediate:
+    MCOp = MCOperand::createImm(MO.getImm());
+    return true;
+  case MachineOperand::MO_GlobalAddress:
+  case MachineOperand::MO_MachineBasicBlock:
+  {
+    MCOp = lowerSymbolOperand(MO);
+    return true;
+  }
+  case MachineOperand::MO_RegisterMask:
+    // Ignore call clobbers.
+    break;
+  default:
+    break;
+  }
+  MCOp = MCOperand();
+  return true;
+}
+
 extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeRISCXAsmPrinter() {
   RegisterAsmPrinter<RISCXAsmPrinter> X(getTheRISCXTarget());
 }

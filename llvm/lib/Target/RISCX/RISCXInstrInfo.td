@@ -3,12 +3,6 @@ include "RISCXInstrFormats.td"
 def riscx_retglue : SDNode<"RISCXISD::RET_GLUE", SDTNone,
                            [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
-// Add the Lo 12 bits from an address. Selected to ADDI.
-def riscx_lo : SDNode<"RISCXISD::LO", SDTIntUnaryOp>;
-
-// Get the Hi 20 bits from an address. Selected to LUI.
-def riscx_hi : SDNode<"RISCXISD::HI", SDTIntUnaryOp>;
-
 class PTX_READ_SREG_R32<string regname, Intrinsic intop, list<Predicate> Preds=[]>
   : RISCXInst<(outs GPR:$d), (ins),
               "MVSPR2R $d, %" # regname # ";",
@@ -37,17 +31,17 @@ def imm20 : Operand<i32>, ImmLeaf<i32, [{ return isInt<20>(Imm); }]>;
 
 // load/store for addr
 // addr -> memory
-def mem : Operand<iPTR> {
-  let MIOperandInfo = (ops GPR, imm12);
-  // custom print method to print offset(GPR)
-  let PrintMethod = "printMemOperand";
-}
+// def mem : Operand<iPTR> {
+//   let MIOperandInfo = (ops GPR, imm12);
+//   // custom print method to print offset(GPR)
+//   let PrintMethod = "printMemOperand";
+// }
 
-def ptr : Operand<iPTR> {
-  let MIOperandInfo = (ops GPR, imm12);
-  // custom print method to print offset(GPR)
-  let PrintMethod = "printPtrOperand";
-}
+// def ptr : Operand<iPTR> {
+//   let MIOperandInfo = (ops GPR, imm12);
+//   // custom print method to print offset(GPR)
+//   let PrintMethod = "printPtrOperand";
+// }
 
 // SDNPWantParent -> pass frameIndex's ref Node
 def addFI : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex]> {
@@ -56,8 +50,8 @@ def addFI : ComplexPattern<iPTR, 2, "SelectAddrFI", [frameindex]> {
 
 // load and store
 multiclass LOAD<PatFrag op, string name> {
-  def FI : I<(outs GPR: $ra), (ins mem: $addr), !strconcat(name, " \t$ra, $addr"), [(set GPR:$ra, (op addFI:$addr))]>;
-  def R  : I<(outs GPR: $ra), (ins GPR: $rb), !strconcat(name, " \t$ra, 0($rb)"), [(set GPR:$ra, (op GPR:$rb))]>;
+  def FI : I<(outs GPR: $rd), (ins GPR: $rs1, imm12: $imm12), !strconcat(name, " \t$rd, $imm12($rs1)"), [(set GPR:$rd, (op (addFI GPR: $rs1, imm12: $imm12)))]>;
+  def R  : I<(outs GPR: $rd), (ins GPR: $rs), !strconcat(name, " \t$rd, 0($rs)"), [(set GPR:$rd, (op GPR:$rs))]>;
 }
 
 defm LOADW : LOAD<load, "lw">;
@@ -71,8 +65,8 @@ defm LOADSB : LOAD<sextloadi8, "lb">;
 defm LOADZB : LOAD<zextloadi8, "lb">;
 
 multiclass STORE<PatFrag op, string name> {
-  def FI : S<(outs), (ins GPR: $ra, mem: $addr), !strconcat(name, " \t$ra, $addr"), [(op GPR:$ra, addFI:$addr)]>;
-  def R  : S<(outs), (ins GPR: $ra, GPR: $rb), !strconcat(name, " \t$ra, 0($rb)"), [(op GPR:$ra, GPR:$rb)]>;
+  def FI : S<(outs), (ins GPR: $rd, GPR: $rs1, imm12: $imm12), !strconcat(name, " \t$rd, $imm12($rs1)"), [(op GPR:$rd, (addFI GPR: $rs1, imm12: $imm12))]>;
+  def R  : S<(outs), (ins GPR: $rd, GPR: $rs), !strconcat(name, " \t$rd, 0($rs)"), [(op GPR:$rd, GPR:$rs)]>;
 }
 
 defm STOREW : STORE<store, "sw">;
@@ -105,6 +99,7 @@ class ArithLogicR<string inst, SDNode node> : I<
   [(set GPR:$rd, (node GPR:$rs1, GPR:$rs2))]>;
 
 def ADD : ArithLogicR<"add", add>;
+def SUB : ArithLogicR<"sub", sub>;
 def MUL : ArithLogicR<"mul", mul>;
 def REM : ArithLogicR<"rem", srem>;
 def DIV : ArithLogicR<"div", sdiv>;
@@ -149,18 +144,28 @@ def riscxcall : SDNode<"RISCXISD::CALL", RISCXSDT_Call,
                             [SDNPHasChain, SDNPOutGlue,
                              SDNPOptInGlue, SDNPVariadic]>;
 
-def call_symbal : Operand<iPTR>;
-def CALL : I<(outs), (ins call_symbal:$rs1), "call \t$rs1", [(riscxcall tglobaladdr:$rs1)]> {
+// def call_symbal : Operand<iPTR>;
+// def CALL : I<(outs), (ins call_symbal:$rs1), "call \t$rs1", [(riscxcall tglobaladdr:$rs1)]> {
+//   let isCall = 1;
+// }
+
+def CALL : PseudoInst<(outs), (ins GPR:$rs1), [(riscxcall GPR:$rs1)]>, PseudoInstExpansion<(JALR RA, GPR:$rs1, 0)> {
   let isCall = 1;
 }
 
 // def HI: SDNode<"RISCXISD::HI", SDTIntUnaryOp>;
 // def LO: SDNode<"RISCXISD::LO", SDTIntUnaryOp>;
 
+// Add the Lo 12 bits from an address. Selected to ADDI.
+def riscx_lo : SDNode<"RISCXISD::LO", SDTIntUnaryOp>;
+
+// Get the Hi 20 bits from an address. Selected to LUI.
+def riscx_hi : SDNode<"RISCXISD::HI", SDTIntUnaryOp>;
+
 def LUI : U<(outs GPR:$rd), (ins imm20:$imm20), "lui \t$rd, $imm20", []>;
 
-def : Pat<(riscx_hi tglobaladdr: $in), (LUI tglobaladdr: $in)>;
-def : Pat<(add GPR: $hi, (riscx_lo tglobaladdr: $lo)), (ADDI GPR: $hi, tglobaladdr: $lo)>;
+// def : Pat<(riscx_hi tglobaladdr: $in), (LUI tglobaladdr: $in)>;
+// def : Pat<(add GPR: $hi, (riscx_lo tglobaladdr: $lo)), (ADDI GPR: $hi, tglobaladdr: $lo)>;
 
 def : InstAlias<"ret", (JALR ZERO, RA, 0)>;
 def : InstAlias<"li $rd, $imm", (ADDI GPR:$rd, ZERO, i32imm:$imm)>;
@@ -181,13 +186,18 @@ let isTerminator = 1 in {
   def BLT : B<(outs), (ins GPR:$rs1, GPR:$rs2, brtarget:$target), "blt \t$rs1, $rs2, $target", []>;
   def BEQ : B<(outs), (ins GPR:$rs1, GPR:$rs2, brtarget:$target), "beq \t$rs1, $rs2, $target", []>;
   def BNE : B<(outs), (ins GPR:$rs1, GPR:$rs2, brtarget:$target), "bne \t$rs1, $rs2, $target", []>;
+  def BGE : B<(outs), (ins GPR:$rs1, GPR:$rs2, brtarget:$target), "bge \t$rs1, $rs2, $target", []>;
 }
 
 def : Pat<(brcond (i32 (setlt GPR:$rs1, GPR:$rs2)), bb:$dst), (BLT GPR:$rs1, GPR:$rs2, brtarget:$dst)>;
 def : Pat<(brcond (i32 (setgt GPR:$rs1, GPR:$rs2)), bb:$dst), (BLT GPR:$rs2, GPR:$rs1, brtarget:$dst)>;
 def : Pat<(brcond (i32 (seteq GPR:$rs1, GPR:$rs2)), bb:$dst), (BEQ GPR:$rs1, GPR:$rs2, brtarget:$dst)>;
 def : Pat<(brcond (i32 (setne GPR:$rs1, GPR:$rs2)), bb:$dst), (BNE GPR:$rs1, GPR:$rs2, brtarget:$dst)>;
+def : Pat<(brcond (i32 (setge GPR:$rs1, GPR:$rs2)), bb:$dst), (BGE GPR:$rs1, GPR:$rs2, brtarget:$dst)>;
+def : Pat<(brcond (i32 (setle GPR:$rs1, GPR:$rs2)), bb:$dst), (BGE GPR:$rs2, GPR:$rs1, brtarget:$dst)>;
 
 def : Pat<(br bb:$dst), (J brtarget:$dst)>;
 
-def : I<(outs GPR:$rd), (ins ptr:$p), "addi \t$rd, $p", [(set GPR:$rd, addFI:$p)]>;
+// def : I<(outs GPR:$rd), (ins ptr:$p), "addi \t$rd, $p", [(set GPR:$rd, addFI:$p)]>;
+
+def : Pat<(addFI GPR:$rs1, imm12:$imm12), (ADDI GPR:$rs1, i32imm:$imm12)>;
